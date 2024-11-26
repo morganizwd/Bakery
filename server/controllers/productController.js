@@ -5,7 +5,12 @@ const path = require('path');
 class ProductController {
     async create(req, res) {
         try {
-            const { name, description, price, bakeryId } = req.body;
+            const { name, description, price } = req.body;
+            const bakeryId = req.user.bakeryId; // Получаем bakeryId из req.user
+
+            if (!bakeryId) {
+                return res.status(403).json({ message: 'Нет прав для создания товара' });
+            }
 
             const bakery = await Bakery.findByPk(bakeryId);
             if (!bakery) {

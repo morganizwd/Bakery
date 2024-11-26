@@ -2,16 +2,25 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function (req, res, next) {
     try {
-        const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+        const token = req.headers.authorization.split(' ')[1]; // "Bearer TOKEN"
         if (!token) {
             return res.status(401).json({ message: 'Не авторизован' });
         }
-
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
-        req.user = decoded;
+
+        console.log('Decoded token:', decoded);
+
+        if (decoded.userId) {
+            req.user = { userId: decoded.userId };
+        } else if (decoded.bakeryId) {
+            req.user = { bakeryId: decoded.bakeryId };
+        } else {
+            return res.status(401).json({ message: 'Не авторизован' });
+        }
+
         next();
-    } catch (error) {
-        console.error('Ошибка при проверке токена:', error);
+    } catch (e) {
+        console.error('Ошибка в authenticateToken middleware:', e);
         res.status(401).json({ message: 'Не авторизован' });
     }
 };

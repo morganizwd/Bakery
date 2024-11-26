@@ -1,20 +1,25 @@
+// controllers/reviewController.js
+
 const { Review, User, Bakery, Order } = require('../models/models');
 
 class ReviewController {
 
     async createReview(req, res) {
         try {
+            const { rating, short_review, description, orderId } = req.body;
             const userId = req.user.userId;
-            const { rating, short_review, description, orderId, bakeryId } = req.body;
+
+            if (!userId) {
+                return res.status(401).json({ message: 'Неавторизованный пользователь' });
+            }
 
             const order = await Order.findByPk(orderId);
             if (!order) {
                 return res.status(404).json({ message: 'Заказ не найден' });
             }
 
-            const bakery = await Bakery.findByPk(bakeryId);
-            if (!bakery) {
-                return res.status(404).json({ message: 'Пекарня не найдена' });
+            if (order.status !== 'выполнен') { // Проверяем статус заказа
+                return res.status(400).json({ message: 'Отзыв можно оставить только для выполненных заказов' });
             }
 
             const existingReview = await Review.findOne({ where: { orderId } });
@@ -22,12 +27,15 @@ class ReviewController {
                 return res.status(400).json({ message: 'Отзыв для данного заказа уже существует' });
             }
 
+            const bakeryId = order.bakeryId;
+
             const review = await Review.create({
                 rating,
                 short_review,
                 description,
                 orderId,
                 bakeryId,
+                userId,
             });
 
             res.status(201).json(review);
@@ -45,6 +53,7 @@ class ReviewController {
                 include: [
                     { model: Order },
                     { model: Bakery },
+                    { model: User, attributes: ['name', 'surname'] },
                 ],
             });
 
@@ -65,6 +74,7 @@ class ReviewController {
                 include: [
                     { model: Order },
                     { model: Bakery },
+                    { model: User, attributes: ['name', 'surname'] },
                 ],
                 order: [['createdAt', 'DESC']],
             });
@@ -80,15 +90,15 @@ class ReviewController {
         try {
             const { id } = req.params;
             const { rating, short_review, description } = req.body;
+            const userId = req.user.userId;
 
             const review = await Review.findByPk(id);
-
             if (!review) {
                 return res.status(404).json({ message: 'Отзыв не найден' });
             }
 
-            if (review.userId !== req.user.userId) {
-              return res.status(403).json({ message: 'Нет доступа для редактирования этого отзыва' });
+            if (review.userId !== userId) {
+                return res.status(403).json({ message: 'Нет доступа для редактирования этого отзыва' });
             }
 
             await review.update({
@@ -107,15 +117,15 @@ class ReviewController {
     async deleteReview(req, res) {
         try {
             const { id } = req.params;
+            const userId = req.user.userId;
 
             const review = await Review.findByPk(id);
-
             if (!review) {
                 return res.status(404).json({ message: 'Отзыв не найден' });
             }
 
-            if (review.userId !== req.user.userId) {
-              return res.status(403).json({ message: 'Нет доступа для удаления этого отзыва' });
+            if (review.userId !== userId) {
+                return res.status(403).json({ message: 'Нет доступа для удаления этого отзыва' });
             }
 
             await review.destroy();
@@ -136,6 +146,7 @@ class ReviewController {
                 include: [
                     { model: Order },
                     { model: Bakery },
+                    { model: User, attributes: ['name', 'surname'] },
                 ],
                 order: [['createdAt', 'DESC']],
             });

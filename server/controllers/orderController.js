@@ -1,58 +1,122 @@
-const { Order, OrderItem, Basket, BasketItem, Product, User } = require('../models/models');
-const sequelize = require('sequelize');
+// controllers/orderController.js
+const { Order, OrderItem, Basket, BasketItem, Product, User, Bakery, Review } = require('../models/models');
 
 class OrderController {
 
+    // Создание нового заказа
     async createOrder(req, res) {
         try {
-            const userId = req.user.userId;
             const { delivery_address, description } = req.body;
 
+            // Получаем ID пользователя из запроса (предполагается, что аутентификация выполнена)
+            const userId = req.user.userId;
+            console.log('User ID:', userId);
+            if (!userId) {
+                return res.status(401).json({ message: 'Неавторизованный пользователь' });
+            }
+
+            // Получаем корзину пользователя, включая BasketItem и Product
             const basket = await Basket.findOne({
                 where: { userId },
-                include: [
-                    {
-                        model: BasketItem,
-                        include: [Product],
-                    },
-                ],
+                include: [{
+                    model: BasketItem,
+                    include: [Product],
+                }]
             });
 
-            if (!basket || basket.basketItems.length === 0) {
-                return res.status(400).json({ message: 'Корзина пуста' });
+            console.log('Basket:', basket);
+
+            if (!basket) {
+                return res.status(400).json({ message: 'Корзина не найдена' });
             }
 
-            let total_cost = 0;
-            for (const item of basket.basketItems) {
-                total_cost += item.quantity * item.product.price;
+            if (basket.BasketItems.length === 0) {
+                return res.status(400).json({ message: 'Ваша корзина пуста' });
             }
 
+            // Формируем имя заказа
+            const orderName = basket.BasketItems.map(item => `${item.Product.name} x ${item.quantity}`).join('; ');
+            console.log('Order Name:', orderName);
+
+            // Вычисляем общую сумму заказа
+            const totalCost = basket.BasketItems.reduce((acc, item) => acc + item.Product.price * item.quantity, 0);
+            console.log('Total Cost:', totalCost);
+
+            // Проверяем, что все товары принадлежат одной пекарне
+            const bakeryIds = [...new Set(basket.BasketItems.map(p => p.Product.bakeryId))];
+            console.log('Bakery IDs:', bakeryIds);
+            if (bakeryIds.length > 1) {
+                return res.status(400).json({ message: 'Все товары должны принадлежать одной пекарне' });
+            }
+            const bakeryId = bakeryIds[0];
+            console.log('Bakery ID:', bakeryId);
+
+            // Создаём заказ
             const order = await Order.create({
-                userId,
                 delivery_address,
-                total_cost,
-                status: 'Новый',
-                date_of_ordering: new Date(),
                 description,
+                total_cost: totalCost,
+                name: orderName,
+                status: 'на рассмотрении', // Устанавливаем статус по умолчанию
+                date_of_ordering: new Date(),
+                userId,
+                bakeryId,
             });
 
-            const orderItems = basket.basketItems.map((item) => ({
+            console.log('Created Order:', order);
+
+            // Создаём OrderItems
+            const orderItems = basket.BasketItems.map(item => ({
                 orderId: order.id,
                 productId: item.productId,
                 quantity: item.quantity,
             }));
 
             await OrderItem.bulkCreate(orderItems);
+            console.log('Order Items:', orderItems);
 
+            // Очищаем корзину
             await BasketItem.destroy({ where: { basketId: basket.id } });
+            console.log('Basket cleared.');
 
-            res.status(201).json(order);
+            res.status(201).json({ message: 'Заказ успешно создан', order });
         } catch (error) {
             console.error('Ошибка при создании заказа:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
 
+    // Получение всех заказов пользователя
+    async getUserOrders(req, res) {
+        try {
+            const userId = req.user.userId;
+            if (!userId) {
+                return res.status(401).json({ message: 'Неавторизованный пользователь' });
+            }
+
+            const orders = await Order.findAll({
+                where: { userId },
+                include: [
+                    {
+                        model: OrderItem,
+                        include: [Product],
+                    },
+                    {
+                        model: Review,
+                        include: [{ model: User, attributes: ['name', 'surname'] }],
+                    },
+                ],
+                order: [['date_of_ordering', 'DESC']],
+            });
+
+            res.json(orders);
+        } catch (error) {
+            console.error('Ошибка при получении заказов пользователя:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    // Получение конкретного заказа по ID
     async getOrderById(req, res) {
         try {
             const { id } = req.params;
@@ -62,6 +126,10 @@ class OrderController {
                     {
                         model: OrderItem,
                         include: [Product],
+                    },
+                    {
+                        model: Review,
+                        include: [{ model: User, attributes: ['name', 'surname'] }],
                     },
                 ],
             });
@@ -77,28 +145,7 @@ class OrderController {
         }
     }
 
-    async getAllOrders(req, res) {
-        try {
-            const userId = req.user.userId;
-
-            const orders = await Order.findAll({
-                where: { userId },
-                include: [
-                    {
-                        model: OrderItem,
-                        include: [Product],
-                    },
-                ],
-                order: [['date_of_ordering', 'DESC']],
-            });
-
-            res.json(orders);
-        } catch (error) {
-            console.error('Ошибка при получении заказов:', error);
-            res.status(500).json({ message: 'Ошибка сервера' });
-        }
-    }
-
+    // Обновление статуса заказа
     async updateOrderStatus(req, res) {
         try {
             const { id } = req.params;
@@ -108,6 +155,12 @@ class OrderController {
 
             if (!order) {
                 return res.status(404).json({ message: 'Заказ не найден' });
+            }
+
+            // Статус может быть только определёнными значениями
+            const allowedStatuses = ['на рассмотрении', 'выполняется', 'выполнен', 'отменён'];
+            if (!allowedStatuses.includes(status)) {
+                return res.status(400).json({ message: 'Недопустимый статус заказа' });
             }
 
             order.status = status;
@@ -120,6 +173,7 @@ class OrderController {
         }
     }
 
+    // Удаление заказа
     async deleteOrder(req, res) {
         try {
             const { id } = req.params;
@@ -130,13 +184,57 @@ class OrderController {
                 return res.status(404).json({ message: 'Заказ не найден' });
             }
 
+            // Проверяем, что заказ принадлежит текущему пользователю
+            if (order.userId !== req.user.userId) {
+                return res.status(403).json({ message: 'Нет прав для удаления этого заказа' });
+            }
+
+            // Удаляем связанные OrderItems
             await OrderItem.destroy({ where: { orderId: id } });
 
+            // Удаляем сам заказ
             await order.destroy();
 
             res.status(200).json({ message: 'Заказ успешно удален' });
         } catch (error) {
             console.error('Ошибка при удалении заказа:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    async getBakeryOrders(req, res) {
+        try {
+            const bakeryId = req.user.bakeryId;
+            console.log('Получение заказов для пекарни ID:', bakeryId);
+            if (!bakeryId) {
+                return res.status(401).json({ message: 'Неавторизованный пользователь' });
+            }
+
+            // Проверяем существование пекарни
+            const bakery = await Bakery.findByPk(bakeryId);
+            if (!bakery) {
+                return res.status(404).json({ message: 'Пекарня не найдена' });
+            }
+
+            // Получаем заказы, связанные с этой пекарней
+            const orders = await Order.findAll({
+                where: { bakeryId: bakery.id },
+                include: [
+                    {
+                        model: User,
+                        attributes: ['name', 'surname'],
+                    },
+                    {
+                        model: OrderItem,
+                        include: [Product],
+                    },
+                ],
+                order: [['date_of_ordering', 'DESC']],
+            });
+
+            res.json(orders);
+        } catch (error) {
+            console.error('Ошибка при получении заказов пекарни:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }

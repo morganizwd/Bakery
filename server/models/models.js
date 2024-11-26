@@ -1,7 +1,10 @@
-const sequelize = require('.');
+// models/models.js
+
+const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const User = sequelize.define('user', {
+// Определение моделей
+const User = sequelize.define('User', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false },
   surname: { type: DataTypes.STRING, allowNull: false },
@@ -11,10 +14,9 @@ const User = sequelize.define('user', {
   email: { type: DataTypes.STRING, unique: true, allowNull: false },
   password: { type: DataTypes.STRING, allowNull: false },
   photo: { type: DataTypes.STRING, allowNull: true },
-},
-  { timestamps: false });
+}, { timestamps: true });
 
-const Bakery = sequelize.define('bakery', {
+const Bakery = sequelize.define('Bakery', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false },
   contact_person_name: { type: DataTypes.STRING, allowNull: false },
@@ -25,30 +27,29 @@ const Bakery = sequelize.define('bakery', {
   password: { type: DataTypes.STRING, allowNull: false },
   address: { type: DataTypes.STRING, allowNull: false },
   photo: { type: DataTypes.STRING, allowNull: true },
-},
-  { timestamps: false });
+}, { timestamps: true });
 
-const Product = sequelize.define('product', {
+const Product = sequelize.define('Product', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.STRING, allowNull: false },
   price: { type: DataTypes.INTEGER, allowNull: false },
   photo: { type: DataTypes.STRING, allowNull: true },
-},
-  { timestamps: false });
+}, { timestamps: true });
 
-const Basket = sequelize.define('basket', {
+const Basket = sequelize.define('Basket', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-},
-  { timestamps: false });
+  userId: { type: DataTypes.INTEGER, allowNull: false }, // Добавлено поле userId
+}, { timestamps: true });
 
-const BasketItem = sequelize.define('basketItem', {
+const BasketItem = sequelize.define('BasketItem', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  basketId: { type: DataTypes.INTEGER, allowNull: false }, // Добавлено поле basketId
+  productId: { type: DataTypes.INTEGER, allowNull: false }, // Добавлено поле productId
   quantity: { type: DataTypes.INTEGER, allowNull: false },
-},
-  { timestamps: false });
+}, { timestamps: true });
 
-const Order = sequelize.define('order', {
+const Order = sequelize.define('Order', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   delivery_address: { type: DataTypes.STRING, allowNull: false },
   total_cost: { type: DataTypes.INTEGER, allowNull: false },
@@ -57,69 +58,84 @@ const Order = sequelize.define('order', {
   name: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.STRING, allowNull: true },
   date_of_ordering: { type: DataTypes.DATE, allowNull: false },
-},
-  { timestamps: false });
+}, { timestamps: true });
 
-const OrderItem = sequelize.define('orderItem', {
+const OrderItem = sequelize.define('OrderItem', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   quantity: { type: DataTypes.INTEGER, allowNull: false },
-}, { timestamps: false });
+}, { timestamps: true });
 
-const Review = sequelize.define('review', {
+const Review = sequelize.define('Review', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   rating: { type: DataTypes.INTEGER, allowNull: false },
   short_review: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.STRING, allowNull: false },
   userId: { type: DataTypes.INTEGER, allowNull: false },
-}, { timestamps: false });
+  orderId: { type: DataTypes.INTEGER, allowNull: false },
+  bakeryId: { type: DataTypes.INTEGER, allowNull: false },
+}, { timestamps: true });
 
+// Ассоциации
 
-User.hasOne(Basket);
-Basket.belongsTo(User);
+// User и Basket
+User.hasOne(Basket, { foreignKey: 'userId' });
+Basket.belongsTo(User, { foreignKey: 'userId' });
 
-User.hasMany(Order);
-Order.belongsTo(User);
+// User и Order
+User.hasMany(Order, { foreignKey: 'userId' });
+Order.belongsTo(User, { foreignKey: 'userId' });
 
-Bakery.hasMany(Order);
-Order.belongsTo(Bakery);
+// Bakery и Order
+Bakery.hasMany(Order, { foreignKey: 'bakeryId' });
+Order.belongsTo(Bakery, { foreignKey: 'bakeryId' });
 
-Bakery.hasMany(Product);
-Product.belongsTo(Bakery);
+// Bakery и Product
+Bakery.hasMany(Product, { foreignKey: 'bakeryId' });
+Product.belongsTo(Bakery, { foreignKey: 'bakeryId' });
 
-Bakery.hasMany(Review);
-Review.belongsTo(Bakery);
+// Bakery и Review
+Bakery.hasMany(Review, { foreignKey: 'bakeryId' });
+Review.belongsTo(Bakery, { foreignKey: 'bakeryId' });
 
-Order.hasOne(Review);
-Review.belongsTo(Order);
+// Order и Review
+Order.hasOne(Review, { foreignKey: 'orderId' });
+Review.belongsTo(Order, { foreignKey: 'orderId' });
 
-Basket.belongsToMany(Product, { through: BasketItem });
-Product.belongsToMany(Basket, { through: BasketItem });
+// Basket и Product через BasketItem
+Basket.belongsToMany(Product, { through: BasketItem, foreignKey: 'basketId', otherKey: 'productId' });
+Product.belongsToMany(Basket, { through: BasketItem, foreignKey: 'productId', otherKey: 'basketId' });
 
-Order.belongsToMany(Product, { through: OrderItem });
-Product.belongsToMany(Order, { through: OrderItem });
+// Order и Product через OrderItem
+Order.belongsToMany(Product, { through: OrderItem, foreignKey: 'orderId', otherKey: 'productId' });
+Product.belongsToMany(Order, { through: OrderItem, foreignKey: 'productId', otherKey: 'orderId' });
 
-Order.hasMany(OrderItem);
-OrderItem.belongsTo(Order);
+// Order и OrderItem
+Order.hasMany(OrderItem, { foreignKey: 'orderId' });
+OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 
-Product.hasMany(OrderItem);
-OrderItem.belongsTo(Product);
+// Product и OrderItem
+Product.hasMany(OrderItem, { foreignKey: 'productId' });
+OrderItem.belongsTo(Product, { foreignKey: 'productId' });
 
-User.hasMany(Review);
-Review.belongsTo(User);
+// Basket и BasketItem (явные ассоциации)
+Basket.hasMany(BasketItem, { foreignKey: 'basketId' });
+BasketItem.belongsTo(Basket, { foreignKey: 'basketId' });
 
-Bakery.hasMany(Review);
-Review.belongsTo(Bakery);
+// Product и BasketItem (явные ассоциации)
+Product.hasMany(BasketItem, { foreignKey: 'productId' });
+BasketItem.belongsTo(Product, { foreignKey: 'productId' });
 
-Order.hasOne(Review);
-Review.belongsTo(Order);
+// User и Review
+User.hasMany(Review, { foreignKey: 'userId' });
+Review.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = {
-  OrderItem,
   User,
+  Bakery,
   Product,
   Basket,
   BasketItem,
   Order,
+  OrderItem,
   Review,
-  Bakery,
 };

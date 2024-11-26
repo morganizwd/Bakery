@@ -1,4 +1,4 @@
-const { Bakery } = require('../models/models');
+const { Bakery, Product, Review, User } = require('../models/models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
@@ -64,7 +64,7 @@ class BakeryController {
                 { expiresIn: '24h' }
             );
 
-            res.json({ token, bakeryId: bakery.id });
+            res.json({ token, user: bakery });
         } catch (error) {
             console.error('Ошибка при входе пекарни:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
@@ -90,10 +90,22 @@ class BakeryController {
 
     async findOne(req, res) {
         try {
-            const bakery = await Bakery.findByPk(req.params.id);
+            const { id } = req.params;
+
+            const bakery = await Bakery.findByPk(id, {
+                include: [
+                    { model: Product },
+                    { 
+                        model: Review, 
+                        include: [{ model: User, attributes: ['name', 'surname'] }] 
+                    },
+                ],
+            });
+
             if (!bakery) {
                 return res.status(404).json({ message: 'Пекарня не найдена' });
             }
+
             res.json(bakery);
         } catch (error) {
             console.error('Ошибка при получении пекарни:', error);
@@ -103,7 +115,9 @@ class BakeryController {
 
     async findAll(req, res) {
         try {
-            const bakeries = await Bakery.findAll();
+            const bakeries = await Bakery.findAll({
+                include: [Product],
+            });
             res.json(bakeries);
         } catch (error) {
             console.error('Ошибка при получении списка пекарен:', error);

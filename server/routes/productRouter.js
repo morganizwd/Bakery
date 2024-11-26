@@ -1,27 +1,32 @@
-const Router = require('express').Router;
+const express = require('express');
 const ProductController = require('../controllers/productController');
 const authenticateToken = require('../middleware/authenticateToken');
 const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
+const fs = require('fs');
+const path = require('path');
 
-const router = Router();
+// Настройка multer для загрузки фотографий товаров
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, '../uploads/products');
+        fs.mkdirSync(uploadDir, { recursive: true });
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '_' + file.originalname;
+        cb(null, uniqueSuffix);
+    },
+});
 
-// Создание нового продукта
+const upload = multer({ storage: storage });
+
+const router = express.Router();
+
 router.post('/', authenticateToken, upload.single('photo'), ProductController.create);
-
-// Получение всех продуктов
 router.get('/', ProductController.findAll);
-
-// Получение продукта по ID
-router.get('/:id', ProductController.findOne);
-
-// Обновление продукта
-router.put('/:id', authenticateToken, upload.single('photo'), ProductController.update);
-
-// Удаление продукта
-router.delete('/:id', authenticateToken, ProductController.delete);
-
-// Получение продуктов по ID пекарни
 router.get('/bakery/:bakeryId', ProductController.findByBakery);
+router.get('/:id', ProductController.findOne);
+router.put('/:id', authenticateToken, upload.single('photo'), ProductController.update);
+router.delete('/:id', authenticateToken, ProductController.delete);
 
 module.exports = router;
