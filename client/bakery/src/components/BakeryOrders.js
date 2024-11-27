@@ -33,10 +33,8 @@ function BakeryOrders() {
     const [searchDate, setSearchDate] = useState('');
     const [searchStatus, setSearchStatus] = useState('');
 
-    // Статусы, доступные для обновления
     const allowedStatuses = ['на рассмотрении', 'выполняется', 'выполнен', 'отменён'];
 
-    // Состояние для диалога подтверждения удаления
     const [openDialog, setOpenDialog] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState(null);
 
@@ -48,7 +46,6 @@ function BakeryOrders() {
         filterOrders();
     }, [searchDate, searchStatus, orders]);
 
-    // Функция для получения заказов
     const fetchOrders = async () => {
         try {
             const response = await axios.get('/api/bakeries/orders');
@@ -62,7 +59,6 @@ function BakeryOrders() {
         }
     };
 
-    // Функция для фильтрации заказов
     const filterOrders = () => {
         let filtered = [...orders];
 
@@ -79,7 +75,6 @@ function BakeryOrders() {
         setFilteredOrders(filtered);
     };
 
-    // Функция для обновления статуса заказа
     const handleStatusChange = async (orderId, newStatus) => {
         try {
             const response = await axios.put(`/api/orders/${orderId}/status`, { status: newStatus });
@@ -95,19 +90,16 @@ function BakeryOrders() {
         }
     };
 
-    // Функция для открытия диалога подтверждения удаления
     const handleOpenDialog = (orderId) => {
         setOrderToDelete(orderId);
         setOpenDialog(true);
     };
 
-    // Функция для закрытия диалога
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setOrderToDelete(null);
     };
 
-    // Функция для удаления заказа
     const handleDeleteOrder = async () => {
         if (!orderToDelete) return;
 
@@ -146,7 +138,6 @@ function BakeryOrders() {
                 Управление Заказами
             </Typography>
 
-            {/* Секция фильтров */}
             <Box sx={{ display: 'flex', gap: 2, marginBottom: '20px' }}>
                 <TextField
                     label="Поиск по дате (ГГГГ-ММ-ДД)"
@@ -254,7 +245,6 @@ function BakeryOrders() {
                 </TableContainer>
             )}
 
-            {/* Диалог подтверждения удаления */}
             <Dialog open={openDialog} onClose={handleCloseDialog}>
                 <DialogTitle>Подтверждение Удаления</DialogTitle>
                 <DialogContent>
