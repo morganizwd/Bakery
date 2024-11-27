@@ -143,6 +143,32 @@ class OrderController {
         }
     }
 
+    async updateOrderCompletionTime(req, res) {
+        try {
+            const { id } = req.params;
+            const { completion_time } = req.body;
+
+            const order = await Order.findByPk(id);
+
+            if (!order) {
+                return res.status(404).json({ message: 'Заказ не найден' });
+            }
+
+            const bakeryId = req.user.bakeryId;
+            if (order.bakeryId !== bakeryId) {
+                return res.status(403).json({ message: 'У вас нет прав для обновления этого заказа.' });
+            }
+
+            order.completion_time = completion_time;
+            await order.save();
+
+            res.json({ message: 'Время выполнения заказа обновлено.', order });
+        } catch (error) {
+            console.error('Ошибка при обновлении времени выполнения заказа:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
     async deleteOrder(req, res) {
         try {
             const { id } = req.params;

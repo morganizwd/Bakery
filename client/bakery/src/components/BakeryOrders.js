@@ -32,6 +32,8 @@ function BakeryOrders() {
     const [error, setError] = useState(null);
     const [searchDate, setSearchDate] = useState('');
     const [searchStatus, setSearchStatus] = useState('');
+    const [editingOrder, setEditingOrder] = useState(null);
+    const [completionTime, setCompletionTime] = useState('');
 
     const allowedStatuses = ['на рассмотрении', 'выполняется', 'выполнен', 'отменён'];
 
@@ -115,6 +117,28 @@ function BakeryOrders() {
         }
     };
 
+    const handleUpdateCompletionTime = async (orderId) => {
+        if (!completionTime.trim()) {
+            alert('Введите корректное время выполнения');
+            return;
+        }
+
+        try {
+            const response = await axios.put(`/api/orders/${orderId}/completion-time`, { completion_time: completionTime });
+            setOrders((prevOrders) =>
+                prevOrders.map((order) =>
+                    order.id === orderId ? { ...order, completion_time: response.data.order.completion_time } : order
+                )
+            );
+            alert('Время выполнения успешно обновлено');
+        } catch (error) {
+            console.error('Ошибка при обновлении времени выполнения заказа:', error);
+            alert('Не удалось обновить время выполнения заказа.');
+        } finally {
+            setEditingOrder(null);
+        }
+    };
+
     if (loading)
         return (
             <Container sx={{ textAlign: 'center', marginTop: '50px' }}>
@@ -182,13 +206,16 @@ function BakeryOrders() {
                         <TableHead>
                             <TableRow>
                                 <TableCell>ID Заказа</TableCell>
+                                <TableCell>Время выполнения</TableCell>
                                 <TableCell>Имя Клиента</TableCell>
                                 <TableCell>Телефон Клиента</TableCell>
+                                <TableCell>Пожелания</TableCell>
                                 <TableCell>Адрес Доставки</TableCell>
                                 <TableCell>Товары</TableCell>
                                 <TableCell>Общая Стоимость</TableCell>
                                 <TableCell>Статус</TableCell>
                                 <TableCell>Дата Заказа</TableCell>
+
                                 <TableCell>Действия</TableCell>
                             </TableRow>
                         </TableHead>
@@ -197,9 +224,31 @@ function BakeryOrders() {
                                 <TableRow key={order.id}>
                                     <TableCell>{order.id}</TableCell>
                                     <TableCell>
+                                        {editingOrder === order.id ? (
+                                            <TextField
+                                                value={completionTime}
+                                                onChange={(e) => setCompletionTime(e.target.value)}
+                                                onBlur={() => handleUpdateCompletionTime(order.id)}
+                                                placeholder="Введите время"
+                                                fullWidth
+                                            />
+                                        ) : (
+                                            <Typography
+                                                onClick={() => {
+                                                    setEditingOrder(order.id);
+                                                    setCompletionTime(order.completion_time || '');
+                                                }}
+                                                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                            >
+                                                {order.completion_time || 'Не указано'}
+                                            </Typography>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
                                         {order.User.name} {order.User.surname}
                                     </TableCell>
                                     <TableCell>{order.User.phone}</TableCell>
+                                    <TableCell>{order.description}</TableCell>
                                     <TableCell>{order.delivery_address}</TableCell>
                                     <TableCell>
                                         <ul style={{ paddingLeft: '20px', margin: 0 }}>
@@ -228,6 +277,7 @@ function BakeryOrders() {
                                     <TableCell>
                                         {new Date(order.date_of_ordering).toLocaleString()}
                                     </TableCell>
+
                                     <TableCell>
                                         <Button
                                             variant="contained"

@@ -209,6 +209,7 @@ function Orders() {
                                     <ListItemText primary={`Адрес доставки: ${order.delivery_address}`} />
                                     <ListItemText primary={`Дата заказа: ${new Date(order.date_of_ordering).toLocaleString()}`} />
                                     <ListItemText primary={`Статус: ${order.status}`} />
+                                    <ListItemText primary={`Время готовнсти: ${order.completion_time}`} />
                                     <ListItemText primary={`Итоговая сумма: ${order.total_cost} ₽`} />
                                     <ListItemText primary={`Пожелания: ${order.description || 'Отсутствуют'}`} />
                                     <Typography variant="subtitle1" gutterBottom>Товары:</Typography>
