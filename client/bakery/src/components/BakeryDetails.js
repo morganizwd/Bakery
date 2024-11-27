@@ -1,19 +1,16 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
-import { useParams, useNavigate } from 'react-router-dom'; 
+import { useParams } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
-import { AuthContext } from '../context/AuthContext';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
-import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, TextField, CircularProgress, Box, Divider } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, TextField, CircularProgress, Box, Divider, IconButton } from '@mui/material';
 
 function BakeryDetails() {
     const { id } = useParams();
-    const navigate = useNavigate(); 
     const [bakery, setBakery] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { addToCart, cartItems } = useContext(CartContext);
-    const { authData } = useContext(AuthContext);
+    const { addToCart } = useContext(CartContext);
     const [quantities, setQuantities] = useState({});
 
     useEffect(() => {
@@ -44,26 +41,13 @@ function BakeryDetails() {
     const handleQuantityChange = (productId, value) => {
         const qty = parseInt(value, 10);
         if (qty >= 1) {
-            setQuantities((prev) => ({ ...prev, [productId]: qty }));
+            setQuantities(prev => ({ ...prev, [productId]: qty }));
         }
     };
 
     const handleAddToCart = (product) => {
-        if (!authData.isAuthenticated) {
-            alert('Вы должны войти в систему, чтобы добавить товары в корзину.');
-            navigate('/login'); 
-            return;
-        }
-
-        const existingBakeryId = cartItems.length > 0 ? cartItems[0].bakeryId : null;
-
-        if (existingBakeryId && existingBakeryId !== bakery.id) {
-            alert('Вы можете добавлять товары только из одной пекарни!');
-            return;
-        }
-
         const quantity = quantities[product.id] || 1;
-        addToCart({ ...product, bakeryId: bakery.id }, quantity);
+        addToCart(product, quantity);
         alert(`Добавлено ${quantity} x ${product.name} в корзину!`);
     };
 
@@ -108,6 +92,27 @@ function BakeryDetails() {
                             ({reviews.length} отзывов)
                         </Typography>
                     </Box>
+
+                    {bakery.photo && (
+                        <CardMedia
+                            component="img"
+                            image={`http://localhost:5000${bakery.photo}`}
+                            alt={bakery.name}
+                            sx={{ width: '300px', height: 'auto', marginBottom: '20px' }}
+                        />
+                    )}
+                    <Typography variant="body1" paragraph>
+                        {bakery.description}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                        Адрес: {bakery.address}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                        Телефон: {bakery.phone}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                        Контактное лицо: {bakery.contact_person_name}
+                    </Typography>
 
                     <Typography variant="h4" component="h2" gutterBottom>
                         Товары
@@ -159,6 +164,29 @@ function BakeryDetails() {
                         </Grid>
                     ) : (
                         <Typography variant="body1">Товары не найдены.</Typography>
+                    )}
+
+                    <Typography variant="h4" component="h2" gutterBottom sx={{ marginTop: '20px' }}>
+                        Отзывы
+                    </Typography>
+                    {reviews.length > 0 ? (
+                        <Box>
+                            {reviews.map(review => (
+                                <Box key={review.id} sx={{ marginBottom: '20px' }}>
+                                    <Divider sx={{ marginBottom: '10px' }} />
+                                    <Typography variant="body1" fontWeight="bold">
+                                        {review.User.name} {review.User.surname} оценил(а) на {review.rating} звезд
+                                    </Typography>
+                                    <Typography variant="body2" paragraph><em>{review.short_review}</em></Typography>
+                                    <Typography variant="body2" paragraph>{review.description}</Typography>
+                                    <Typography variant="caption" display="block">
+                                        {new Date(review.createdAt).toLocaleString()}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    ) : (
+                        <Typography variant="body1">Нет отзывов.</Typography>
                     )}
                 </Box>
             ) : (
