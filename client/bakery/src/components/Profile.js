@@ -1,9 +1,16 @@
-// src/components/Profile.js
-
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { AuthContext } from '../context/AuthContext';
-import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import {
+    Container,
+    Typography,
+    TextField,
+    Button,
+    Box,
+    CircularProgress,
+    Avatar,
+    IconButton,
+} from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -56,9 +63,9 @@ function Profile() {
     const handleChange = (e) => {
         const { name, value, files } = e.target;
         if (name === 'photo') {
-            setFormData(prev => ({ ...prev, photo: files[0] }));
+            setFormData((prev) => ({ ...prev, photo: files[0] }));
         } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
+            setFormData((prev) => ({ ...prev, [name]: value }));
         }
     };
 
@@ -96,7 +103,7 @@ function Profile() {
             setUser(response.data);
             toast.success('Профиль успешно обновлён');
             setSubmitting(false);
-            setFormData(prev => ({ ...prev, password: '', photo: null }));
+            setFormData((prev) => ({ ...prev, password: '', photo: null }));
         } catch (error) {
             console.error('Ошибка при обновлении профиля:', error);
             toast.error(error.response?.data?.message || 'Не удалось обновить профиль');
@@ -104,169 +111,118 @@ function Profile() {
         }
     };
 
-    const renderStars = (rating) => {
-        const stars = [];
-        for (let i = 1; i <= 5; i++) {
-            if (rating >= i) {
-                stars.push(<FaStar key={i} color="#FFD700" />);
-            } else if (rating >= i - 0.5) {
-                stars.push(<FaStarHalfAlt key={i} color="#FFD700" />);
-            } else {
-                stars.push(<FaRegStar key={i} color="#ccc" />);
-            }
-        }
-        return stars;
-    };
-
     if (loading) {
-        return <p>Загрузка...</p>;
+        return (
+            <Container sx={{ textAlign: 'center', padding: '20px' }}>
+                <CircularProgress />
+                <Typography sx={{ marginTop: '20px' }}>Загрузка...</Typography>
+            </Container>
+        );
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-            <h1>Профиль пользователя</h1>
+        <Container maxWidth="sm" sx={{ padding: '20px' }}>
+            <Typography variant="h4" gutterBottom>
+                Профиль пользователя
+            </Typography>
             <ToastContainer />
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Фото профиля:
+            <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar
+                        src={
+                            formData.photo
+                                ? URL.createObjectURL(formData.photo)
+                                : user.photo
+                                    ? `http://localhost:5000${user.photo}`
+                                    : null
+                        }
+                        sx={{ width: 300, height: 300 }}
+                    />
+                    <IconButton component="label">
                         <input
                             type="file"
                             name="photo"
                             accept="image/*"
+                            hidden
                             onChange={handleChange}
-                            style={{ display: 'block', marginTop: '5px' }}
                         />
-                    </label>
-                    {user.photo && !formData.photo && (
-                        <img
-                            src={`http://localhost:5000${user.photo}`}
-                            alt="Фото профиля"
-                            style={{ width: '100px', height: '100px', objectFit: 'cover', marginTop: '10px' }}
-                        />
-                    )}
-                    {formData.photo && (
-                        <div style={{ marginTop: '10px' }}>
-                            <p>Выбрано: {formData.photo.name}</p>
-                            <img
-                                src={URL.createObjectURL(formData.photo)}
-                                alt="Предварительный просмотр"
-                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                            />
-                        </div>
-                    )}
-                </div>
+                        <Button variant="outlined">Изменить фото</Button>
+                    </IconButton>
+                </Box>
 
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Имя*:
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
-                    </label>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Фамилия:
-                        <input
-                            type="text"
-                            name="surname"
-                            value={formData.surname}
-                            onChange={handleChange}
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
-                    </label>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Электронная почта*:
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
-                    </label>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Телефон:
-                        <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
-                    </label>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Дата рождения:
-                        <input
-                            type="date"
-                            name="birth_date"
-                            value={formData.birth_date}
-                            onChange={handleChange}
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
-                    </label>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Описание:
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            rows="4"
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        ></textarea>
-                    </label>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        Новый пароль:
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Оставьте пустым, если не хотите менять пароль"
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
-                    </label>
-                </div>
-
-                <button
+                <TextField
+                    label="Имя*"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                />
+                <TextField
+                    label="Фамилия"
+                    name="surname"
+                    value={formData.surname}
+                    onChange={handleChange}
+                    fullWidth
+                />
+                <TextField
+                    label="Электронная почта*"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    type="email"
+                    fullWidth
+                />
+                <TextField
+                    label="Телефон"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    fullWidth
+                />
+                <TextField
+                    label="Дата рождения"
+                    name="birth_date"
+                    value={formData.birth_date}
+                    onChange={handleChange}
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                />
+                <TextField
+                    label="Описание"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    multiline
+                    rows={4}
+                    fullWidth
+                />
+                <TextField
+                    label="Новый пароль"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    type="password"
+                    placeholder="Оставьте пустым, если не хотите менять пароль"
+                    fullWidth
+                />
+                <Button
                     type="submit"
+                    variant="contained"
+                    color="primary"
                     disabled={submitting}
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#28a745',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                    }}
                 >
                     {submitting ? 'Обновление...' : 'Обновить профиль'}
-                </button>
-            </form>
-        </div>
+                </Button>
+            </Box>
+        </Container>
     );
 }
+
 export default Profile;
