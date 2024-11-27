@@ -120,4 +120,5 @@ module.exports = {
   Order,
   OrderItem,
   Review,
+  sequelize,
 };

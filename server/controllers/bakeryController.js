@@ -1,8 +1,9 @@
-const { Bakery, Product, Review, User } = require('../models/models');
+const { Bakery, Product, Review, User, sequelize } = require('../models/models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const { Op } = require('sequelize');
 
 class BakeryController {
     async registration(req, res) {
@@ -95,9 +96,9 @@ class BakeryController {
             const bakery = await Bakery.findByPk(id, {
                 include: [
                     { model: Product },
-                    { 
-                        model: Review, 
-                        include: [{ model: User, attributes: ['name', 'surname'] }] 
+                    {
+                        model: Review,
+                        include: [{ model: User, attributes: ['name', 'surname'] }]
                     },
                 ],
             });
@@ -115,10 +116,59 @@ class BakeryController {
 
     async findAll(req, res) {
         try {
-            const bakeries = await Bakery.findAll({
-                include: [Product],
+            const { name, address, averageRating, limit, offset } = req.query;
+
+            const whereConditions = {};
+            if (name) {
+                whereConditions.name = { [Op.iLike]: `%${name}%` };
+
+            }
+            if (address) {
+                whereConditions.address = { [Op.iLike]: `%${address}%` };
+            }
+
+            let havingConditions = null;
+            if (averageRating) {
+                havingConditions = sequelize.where(
+                    sequelize.fn('ROUND', sequelize.fn('AVG', sequelize.col('Reviews.rating')), 1),
+                    {
+                        [Op.gte]: parseFloat(averageRating)
+                    }
+                );
+            }
+
+            const { rows, count } = await Bakery.findAndCountAll({
+                where: whereConditions,
+                include: [
+                    {
+                        model: Review,
+                        attributes: [], 
+                    },
+                ],
+                attributes: {
+                    include: [
+                        [
+                            sequelize.fn('ROUND', sequelize.fn('AVG', sequelize.col('Reviews.rating')), 1),
+                            'averageRating'
+                        ],
+                        [
+                            sequelize.fn('COUNT', sequelize.col('Reviews.id')),
+                            'reviewCount'
+                        ],
+                    ],
+                },
+                group: ['Bakery.id'],
+                having: havingConditions,
+                order: [['name', 'ASC']],
+                limit: limit ? parseInt(limit) : undefined,
+                offset: offset ? parseInt(offset) : undefined,
+                subQuery: false,
             });
-            res.json(bakeries);
+
+            res.json({
+                bakeries: rows,
+                total: count.length, 
+            });
         } catch (error) {
             console.error('Ошибка при получении списка пекарен:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
