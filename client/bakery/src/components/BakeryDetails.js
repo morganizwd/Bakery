@@ -3,7 +3,20 @@ import axios from '../api/axiosConfig';
 import { useParams } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
-import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, TextField, CircularProgress, Box, Divider, IconButton } from '@mui/material';
+import { AuthContext } from '../context/AuthContext'; // Импортируем AuthContext
+import {
+    Container,
+    Typography,
+    Grid,
+    Card,
+    CardContent,
+    CardMedia,
+    Button,
+    TextField,
+    CircularProgress,
+    Box,
+    Divider,
+} from '@mui/material';
 
 function BakeryDetails() {
     const { id } = useParams();
@@ -11,6 +24,7 @@ function BakeryDetails() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const { addToCart } = useContext(CartContext);
+    const { authData } = useContext(AuthContext); // Используем данные авторизации
     const [quantities, setQuantities] = useState({});
 
     useEffect(() => {
@@ -41,7 +55,7 @@ function BakeryDetails() {
     const handleQuantityChange = (productId, value) => {
         const qty = parseInt(value, 10);
         if (qty >= 1) {
-            setQuantities(prev => ({ ...prev, [productId]: qty }));
+            setQuantities((prev) => ({ ...prev, [productId]: qty }));
         }
     };
 
@@ -81,7 +95,9 @@ function BakeryDetails() {
                         {bakery.name}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                        <Typography variant="h6" sx={{ marginRight: '8px' }}>Рейтинг:</Typography>
+                        <Typography variant="h6" sx={{ marginRight: '8px' }}>
+                            Рейтинг:
+                        </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             {renderStars(calculateAverageRating())}
                             <Typography variant="h6" sx={{ marginLeft: '8px' }}>
@@ -140,23 +156,27 @@ function BakeryDetails() {
                                             <Typography variant="body1" color="text.primary" paragraph>
                                                 Цена: {product.price} ₽
                                             </Typography>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <TextField
-                                                    label="Количество"
-                                                    type="number"
-                                                    inputProps={{ min: 1 }}
-                                                    value={quantities[product.id] || 1}
-                                                    onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                                                    sx={{ width: '80px', marginRight: '10px' }}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={() => handleAddToCart(product)}
-                                                >
-                                                    Добавить в корзину
-                                                </Button>
-                                            </Box>
+                                            {authData.isAuthenticated && ( // Кнопка видна только если пользователь авторизован
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <TextField
+                                                        label="Количество"
+                                                        type="number"
+                                                        inputProps={{ min: 1 }}
+                                                        value={quantities[product.id] || 1}
+                                                        onChange={(e) =>
+                                                            handleQuantityChange(product.id, e.target.value)
+                                                        }
+                                                        sx={{ width: '80px', marginRight: '10px' }}
+                                                    />
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={() => handleAddToCart(product)}
+                                                    >
+                                                        Добавить в корзину
+                                                    </Button>
+                                                </Box>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 </Grid>
@@ -166,19 +186,28 @@ function BakeryDetails() {
                         <Typography variant="body1">Товары не найдены.</Typography>
                     )}
 
-                    <Typography variant="h4" component="h2" gutterBottom sx={{ marginTop: '20px' }}>
+                    <Typography
+                        variant="h4"
+                        component="h2"
+                        gutterBottom
+                        sx={{ marginTop: '20px' }}
+                    >
                         Отзывы
                     </Typography>
                     {reviews.length > 0 ? (
                         <Box>
-                            {reviews.map(review => (
+                            {reviews.map((review) => (
                                 <Box key={review.id} sx={{ marginBottom: '20px' }}>
                                     <Divider sx={{ marginBottom: '10px' }} />
                                     <Typography variant="body1" fontWeight="bold">
                                         {review.User.name} {review.User.surname} оценил(а) на {review.rating} звезд
                                     </Typography>
-                                    <Typography variant="body2" paragraph><em>{review.short_review}</em></Typography>
-                                    <Typography variant="body2" paragraph>{review.description}</Typography>
+                                    <Typography variant="body2" paragraph>
+                                        <em>{review.short_review}</em>
+                                    </Typography>
+                                    <Typography variant="body2" paragraph>
+                                        {review.description}
+                                    </Typography>
                                     <Typography variant="caption" display="block">
                                         {new Date(review.createdAt).toLocaleString()}
                                     </Typography>

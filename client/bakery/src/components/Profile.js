@@ -1,18 +1,21 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { AuthContext } from '../context/AuthContext';
+import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
-    Container,
-    Typography,
-    TextField,
-    Button,
     Box,
+    Button,
     CircularProgress,
+    Grid,
+    Input,
+    TextField,
+    Typography,
     Avatar,
     IconButton,
 } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
 
 function Profile() {
     const { authData } = useContext(AuthContext);
@@ -63,9 +66,9 @@ function Profile() {
     const handleChange = (e) => {
         const { name, value, files } = e.target;
         if (name === 'photo') {
-            setFormData((prev) => ({ ...prev, photo: files[0] }));
+            setFormData(prev => ({ ...prev, photo: files[0] }));
         } else {
-            setFormData((prev) => ({ ...prev, [name]: value }));
+            setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
@@ -103,7 +106,7 @@ function Profile() {
             setUser(response.data);
             toast.success('Профиль успешно обновлён');
             setSubmitting(false);
-            setFormData((prev) => ({ ...prev, password: '', photo: null }));
+            setFormData(prev => ({ ...prev, password: '', photo: null }));
         } catch (error) {
             console.error('Ошибка при обновлении профиля:', error);
             toast.error(error.response?.data?.message || 'Не удалось обновить профиль');
@@ -112,116 +115,121 @@ function Profile() {
     };
 
     if (loading) {
-        return (
-            <Container sx={{ textAlign: 'center', padding: '20px' }}>
-                <CircularProgress />
-                <Typography sx={{ marginTop: '20px' }}>Загрузка...</Typography>
-            </Container>
-        );
+        return <CircularProgress />;
     }
 
     return (
-        <Container maxWidth="sm" sx={{ padding: '20px' }}>
+        <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
             <Typography variant="h4" gutterBottom>
                 Профиль пользователя
             </Typography>
             <ToastContainer />
-            <Box
-                component="form"
-                onSubmit={handleSubmit}
-                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-            >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar
-                        src={
-                            formData.photo
-                                ? URL.createObjectURL(formData.photo)
-                                : user.photo
-                                    ? `http://localhost:5000${user.photo}`
-                                    : null
-                        }
-                        sx={{ width: 300, height: 300 }}
-                    />
-                    <IconButton component="label">
-                        <input
-                            type="file"
-                            name="photo"
-                            accept="image/*"
-                            hidden
-                            onChange={handleChange}
+            <Box component="form" onSubmit={handleSubmit}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sx={{ textAlign: 'center' }}>
+                        <Avatar
+                            src={formData.photo ? URL.createObjectURL(formData.photo) : `http://localhost:5000${user.photo}`}
+                            alt="Фото профиля"
+                            sx={{ width: 400, height: 400, mx: 'auto' }}
                         />
-                        <Button variant="outlined">Изменить фото</Button>
-                    </IconButton>
-                </Box>
-
-                <TextField
-                    label="Имя*"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    fullWidth
-                />
-                <TextField
-                    label="Фамилия"
-                    name="surname"
-                    value={formData.surname}
-                    onChange={handleChange}
-                    fullWidth
-                />
-                <TextField
-                    label="Электронная почта*"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    type="email"
-                    fullWidth
-                />
-                <TextField
-                    label="Телефон"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    fullWidth
-                />
-                <TextField
-                    label="Дата рождения"
-                    name="birth_date"
-                    value={formData.birth_date}
-                    onChange={handleChange}
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                />
-                <TextField
-                    label="Описание"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    multiline
-                    rows={4}
-                    fullWidth
-                />
-                <TextField
-                    label="Новый пароль"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    type="password"
-                    placeholder="Оставьте пустым, если не хотите менять пароль"
-                    fullWidth
-                />
-                <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    disabled={submitting}
-                >
-                    {submitting ? 'Обновление...' : 'Обновить профиль'}
-                </Button>
+                        <IconButton color="primary" component="label">
+                            <PhotoCamera />
+                            <input
+                                type="file"
+                                name="photo"
+                                accept="image/*"
+                                hidden
+                                onChange={handleChange}
+                            />
+                        </IconButton>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Имя*"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Фамилия"
+                            name="surname"
+                            value={formData.surname}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Электронная почта*"
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Телефон"
+                            name="phone"
+                            type="tel"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Дата рождения"
+                            name="birth_date"
+                            type="date"
+                            value={formData.birth_date}
+                            onChange={handleChange}
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Описание"
+                            name="description"
+                            multiline
+                            rows={4}
+                            value={formData.description}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Новый пароль"
+                            name="password"
+                            type="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            fullWidth
+                            placeholder="Оставьте пустым, если не хотите менять пароль"
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="success"
+                            fullWidth
+                            disabled={submitting}
+                        >
+                            {submitting ? 'Обновление...' : 'Обновить профиль'}
+                        </Button>
+                    </Grid>
+                </Grid>
             </Box>
-        </Container>
+        </Box>
     );
 }
 

@@ -38,7 +38,11 @@ function Login() {
             localStorage.setItem('role', role);
 
             alert('Вход выполнен успешно!');
-            navigate('/dashboard');
+            if (role === 'user') {
+                navigate('/'); 
+            } else if (role === 'bakery') {
+                navigate('/bakery-admin'); 
+            }
         } catch (error) {
             console.error('Ошибка при входе:', error);
             alert('Ошибка при входе');
