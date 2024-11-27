@@ -1,37 +1,26 @@
-// src/components/BakeryAdmin.js
+// src/components/BakeryRoute.js
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Container, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
-import BakeryRoute from './BakeryRoute';
+import React, { useContext } from 'react';
+import { Navigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
-function BakeryAdmin() {
-    return (
-        <BakeryRoute>
-            <Container sx={{ padding: '20px' }}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Панель управления пекарни
-                </Typography>
-                <List>
-                    <ListItem>
-                        <Button component={Link} to="/bakery-admin/edit" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Редактировать информацию о пекарне" />
-                        </Button>
-                    </ListItem>
-                    <ListItem>
-                        <Button component={Link} to="/bakery-admin/products" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Управление товарами" />
-                        </Button>
-                    </ListItem>
-                    <ListItem>
-                        <Button component={Link} to="/bakery-admin/orders" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Управление заказами" />
-                        </Button>
-                    </ListItem>
-                </List>
-            </Container>
-        </BakeryRoute>
-    );
-}
+const BakeryRoute = ({ children }) => {
+    const { authData } = useContext(AuthContext);
 
-export default BakeryAdmin;
+    console.log('BakeryRoute: role is', authData.role, 'isAuthenticated:', authData.isAuthenticated);
+
+    if (!authData.isAuthenticated) {
+        toast.error('Для доступа к этому разделу необходимо войти в систему.');
+        return <Navigate to="/login" />;
+    }
+
+    if (authData.role !== 'bakery') {
+        toast.error('У вас нет доступа к этому разделу.');
+        return <Navigate to="/" />;
+    }
+
+    return children;
+};
+
+export default BakeryRoute;

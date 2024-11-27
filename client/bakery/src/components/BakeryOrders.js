@@ -1,32 +1,215 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Container, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
+// src/components/BakeryOrders.js
 
-function BakeryAdmin() {
+import React, { useEffect, useState } from 'react';
+import axios from '../api/axiosConfig';
+import {
+    Container,
+    Typography,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
+    TableContainer,
+    Paper,
+    Select,
+    MenuItem,
+    Button,
+    CircularProgress,
+    Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+} from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
+
+function BakeryOrders() {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Статусы, доступные для обновления
+    const allowedStatuses = ['на рассмотрении', 'выполняется', 'выполнен', 'отменён'];
+
+    // Состояние для диалога подтверждения удаления
+    const [openDialog, setOpenDialog] = useState(false);
+    const [orderToDelete, setOrderToDelete] = useState(null);
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    // Функция для получения заказов
+    const fetchOrders = async () => {
+        try {
+            const response = await axios.get('/api/bakeries/orders');
+            setOrders(response.data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Ошибка при получении заказов:', err);
+            setError('Не удалось загрузить заказы.');
+            setLoading(false);
+        }
+    };
+
+    // Функция для обновления статуса заказа
+    const handleStatusChange = async (orderId, newStatus) => {
+        try {
+            const response = await axios.put(`/api/orders/${orderId}/status`, { status: newStatus });
+            // Обновляем локальное состояние
+            setOrders((prevOrders) =>
+                prevOrders.map((order) =>
+                    order.id === orderId ? { ...order, status: response.data.status } : order
+                )
+            );
+            alert('Статус заказа успешно обновлён.');
+        } catch (err) {
+            console.error('Ошибка при обновлении статуса заказа:', err);
+            alert('Не удалось обновить статус заказа.');
+        }
+    };
+
+    // Функция для открытия диалога подтверждения удаления
+    const handleOpenDialog = (orderId) => {
+        setOrderToDelete(orderId);
+        setOpenDialog(true);
+    };
+
+    // Функция для закрытия диалога
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setOrderToDelete(null);
+    };
+
+    // Функция для удаления заказа
+    const handleDeleteOrder = async () => {
+        if (!orderToDelete) return;
+
+        try {
+            await axios.delete(`/api/orders/${orderToDelete}`);
+            // Удаляем заказ из локального состояния
+            setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderToDelete));
+            alert('Заказ успешно удалён.');
+        } catch (err) {
+            console.error('Ошибка при удалении заказа:', err);
+            alert('Не удалось удалить заказ.');
+        } finally {
+            handleCloseDialog();
+        }
+    };
+
+    if (loading)
+        return (
+            <Container sx={{ textAlign: 'center', marginTop: '50px' }}>
+                <CircularProgress />
+                <Typography variant="h6" sx={{ marginTop: '20px' }}>
+                    Загрузка заказов...
+                </Typography>
+            </Container>
+        );
+
+    if (error)
+        return (
+            <Container sx={{ marginTop: '50px' }}>
+                <Alert severity="error">{error}</Alert>
+            </Container>
+        );
+
     return (
         <Container sx={{ padding: '20px' }}>
             <Typography variant="h4" component="h1" gutterBottom>
-                Панель управления пекарни
+                Управление Заказами
             </Typography>
-            <List>
-                <ListItem>
-                    <Button component={Link} to="/bakery-admin/edit" variant="outlined" color="primary" fullWidth>
-                        <ListItemText primary="Редактировать информацию о пекарне" />
+            {orders.length === 0 ? (
+                <Alert severity="info">Нет доступных заказов.</Alert>
+            ) : (
+                <TableContainer component={Paper}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>ID Заказа</TableCell>
+                                <TableCell>Имя Клиента</TableCell>
+                                <TableCell>Адрес Доставки</TableCell>
+                                <TableCell>Товары</TableCell>
+                                <TableCell>Общая Стоимость</TableCell>
+                                <TableCell>Статус</TableCell>
+                                <TableCell>Дата Заказа</TableCell>
+                                <TableCell>Действия</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {orders.map((order) => (
+                                <TableRow key={order.id}>
+                                    <TableCell>{order.id}</TableCell>
+                                    <TableCell>
+                                        {order.User.name} {order.User.surname}
+                                    </TableCell>
+                                    <TableCell>{order.delivery_address}</TableCell>
+                                    <TableCell>
+                                        <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                                            {order.OrderItems.map((item) => (
+                                                <li key={item.id}>
+                                                    {item.Product.name} x {item.quantity}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </TableCell>
+                                    <TableCell>{order.total_cost} ₽</TableCell>
+                                    <TableCell>
+                                        <Select
+                                            value={order.status}
+                                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                            variant="standard"
+                                            fullWidth
+                                        >
+                                            {allowedStatuses.map((status) => (
+                                                <MenuItem key={status} value={status}>
+                                                    {status}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell>
+                                        {new Date(order.date_of_ordering).toLocaleString()}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant="contained"
+                                            color="error"
+                                            startIcon={<DeleteIcon />}
+                                            onClick={() => handleOpenDialog(order.id)}
+                                        >
+                                            Удалить
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
+
+            {/* Диалог подтверждения удаления */}
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogTitle>Подтверждение Удаления</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Вы уверены, что хотите удалить этот заказ? Это действие нельзя отменить.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} color="primary">
+                        Отмена
                     </Button>
-                </ListItem>
-                <ListItem>
-                    <Button component={Link} to="/bakery-admin/products" variant="outlined" color="primary" fullWidth>
-                        <ListItemText primary="Управление товарами" />
+                    <Button onClick={handleDeleteOrder} color="error" variant="contained">
+                        Удалить
                     </Button>
-                </ListItem>
-                <ListItem>
-                    <Button component={Link} to="/bakery-admin/orders" variant="outlined" color="primary" fullWidth>
-                        <ListItemText primary="Управление заказами" />
-                    </Button>
-                </ListItem>
-            </List>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 }
 
-export default BakeryAdmin;
+export default BakeryOrders;

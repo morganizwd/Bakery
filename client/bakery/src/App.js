@@ -1,12 +1,14 @@
+// src/App.js
+
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Registration from './components/Registration';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import HomePage from './components/HomePage';
 import BakeryDetails from './components/BakeryDetails';
 import BakeryAdmin from './components/BakeryAdmin';
-import BakeryOrders from './components/BakeryOrders'; 
+import BakeryOrders from './components/BakeryOrders';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import BakeryRoute from './components/BakeryRoute';
@@ -17,33 +19,16 @@ import EditProduct from './components/EditProduct';
 import Cart from './components/Cart';
 import Orders from './components/Orders';
 import Profile from './components/Profile';
-import { AppBar, Toolbar, Button, Container, Box } from '@mui/material';
+import { Container } from '@mui/material';
+import NavigationBar from './components/NavigationBar';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppBar position="static">
-          <Container maxWidth="lg">
-            <Toolbar>
-              <Button component={Link} to="/" color="inherit" sx={{ marginRight: 2 }}>
-                Главная
-              </Button>
-              <Button component={Link} to="/cart" color="inherit" sx={{ marginRight: 2 }}>
-                Корзина
-              </Button>
-              <Button component={Link} to="/orders" color="inherit" sx={{ marginRight: 2 }}>
-                Мои заказы
-              </Button>
-              <Button component={Link} to="/bakery-admin" color="inherit" sx={{ marginRight: 2 }}>
-                Админка пекарни
-              </Button>
-              <Button component={Link} to="/profile" color="inherit" sx={{ marginRight: 2 }}>
-                Профиль
-              </Button>
-            </Toolbar>
-          </Container>
-        </AppBar>
+        <NavigationBar />
         <Container maxWidth="lg" sx={{ paddingY: 4 }}>
           <Routes>
             <Route path="/profile" element={<Profile />} />
@@ -111,6 +96,7 @@ function App() {
             />
           </Routes>
         </Container>
+        <ToastContainer />
       </Router>
     </AuthProvider>
   );

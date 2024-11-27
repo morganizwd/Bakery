@@ -1,3 +1,5 @@
+// src/context/AuthContext.js
+
 import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
@@ -14,7 +16,6 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Ошибка при парсинге user из localStorage:', error);
             existingUser = null;
-            // Очистка некорректных данных
             localStorage.removeItem('user');
         }
     }
