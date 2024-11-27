@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Typography, TextField, Button, Box, InputLabel, Select, MenuItem } from '@mui/material';
 
 function Login() {
-    const [role, setRole] = useState('user'); // 'user' или 'bakery'
+    const [role, setRole] = useState('user');
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -29,10 +29,8 @@ function Login() {
             const response = await axios.post(url, formData);
             const token = response.data.token;
 
-            // Получаем данные пользователя из ответа
             const user = response.data.user;
 
-            // Сохраняем токен, данные пользователя и роль в контексте и localStorage
             login({ user, token, role });
 
             localStorage.setItem('token', token);

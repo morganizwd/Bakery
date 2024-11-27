@@ -1,42 +1,29 @@
-// src/components/BakeryAdmin.js
+import React, { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { Container, Typography, Button, Box } from '@mui/material';
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Container, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
-import BakeryRoute from './BakeryRoute';
+function Dashboard() {
+    const { authData, logout } = useContext(AuthContext);
 
-function BakeryAdmin() {
     return (
-        <BakeryRoute>
-            <Container sx={{ padding: '20px' }}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Панель управления пекарни
-                </Typography>
-                <List>
-                    <ListItem>
-                        <Button component={Link} to="/bakery-admin/edit" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Редактировать информацию о пекарне" />
-                        </Button>
-                    </ListItem>
-                    <ListItem>
-                        <Button component={Link} to="/bakery-admin/products" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Управление товарами" />
-                        </Button>
-                    </ListItem>
-                    <ListItem>
-                        <Button component={Link} to="/bakery-admin/orders" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Управление заказами" />
-                        </Button>
-                    </ListItem>
-                    <ListItem>
-                        <Button component={Link} to="/dashboard" variant="outlined" color="primary" fullWidth>
-                            <ListItemText primary="Панель управления" />
-                        </Button>
-                    </ListItem>
-                </List>
-            </Container>
-        </BakeryRoute>
+        <Container sx={{ padding: '20px', textAlign: 'center' }}>
+            <Typography variant="h4" gutterBottom>
+                Панель управления
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+                Добро пожаловать, {authData.user ? authData.user.name || authData.user.email : 'Пользователь'}!
+            </Typography>
+            <Box sx={{ marginTop: '20px' }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={logout}
+                >
+                    Выйти
+                </Button>
+            </Box>
+        </Container>
     );
 }
 
-export default BakeryAdmin;
+export default Dashboard;
