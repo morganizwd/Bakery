@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
-import { useParams, useNavigate } from 'react-router-dom'; // Добавлено useNavigate
+import { useParams, useNavigate } from 'react-router-dom'; 
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
@@ -8,12 +8,12 @@ import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, Text
 
 function BakeryDetails() {
     const { id } = useParams();
-    const navigate = useNavigate(); // Хук для навигации
+    const navigate = useNavigate(); 
     const [bakery, setBakery] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const { addToCart, cartItems } = useContext(CartContext);
-    const { authData } = useContext(AuthContext); // Получение данных авторизации
+    const { authData } = useContext(AuthContext);
     const [quantities, setQuantities] = useState({});
 
     useEffect(() => {
@@ -49,14 +49,12 @@ function BakeryDetails() {
     };
 
     const handleAddToCart = (product) => {
-        // Проверка, авторизован ли пользователь
         if (!authData.isAuthenticated) {
             alert('Вы должны войти в систему, чтобы добавить товары в корзину.');
-            navigate('/login'); // Перенаправление на страницу входа
+            navigate('/login'); 
             return;
         }
 
-        // Проверка, есть ли товары из другой пекарни
         const existingBakeryId = cartItems.length > 0 ? cartItems[0].bakeryId : null;
 
         if (existingBakeryId && existingBakeryId !== bakery.id) {
