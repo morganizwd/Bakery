@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import axios from '../api/axiosConfig';
+import { Container, Typography, TextField, Button, Box, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Registration() {
     const [role, setRole] = useState('user'); // 'user' или 'bakery'
     const [formData, setFormData] = useState({
-        // Общие поля
         email: '',
         password: '',
         confirmPassword: '',
-        // Поля для пользователя
         name: '',
         surname: '',
         phone: '',
         birth_date: '',
         description: '',
-        // Поля для пекарни
         bakeryName: '',
         contactPersonName: '',
         registrationNumber: '',
@@ -39,15 +39,12 @@ function Registration() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Валидация пароля
         if (formData.password !== formData.confirmPassword) {
-            alert('Пароли не совпадают');
+            toast.error('Пароли не совпадают');
             return;
         }
 
-        // Создание объекта FormData для отправки данных, включая файл
         const data = new FormData();
-
         if (role === 'user') {
             data.append('name', formData.name);
             data.append('surname', formData.surname);
@@ -72,159 +69,157 @@ function Registration() {
 
         try {
             const url = role === 'user' ? '/api/users/registration' : '/api/bakeries/registration';
-            const response = await axios.post(url, data, {
+            await axios.post(url, data, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            alert('Регистрация прошла успешно!');
-            // Перенаправление на страницу входа или другую страницу
+            toast.success('Регистрация прошла успешно!');
         } catch (error) {
             console.error('Ошибка при регистрации:', error);
-            alert('Ошибка при регистрации');
+            toast.error('Ошибка при регистрации');
         }
     };
 
     return (
-        <div>
-            <h2>Регистрация</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>
-                        Я хочу зарегистрироваться как:
-                        <select value={role} onChange={handleRoleChange}>
-                            <option value="user">Покупатель</option>
-                            <option value="bakery">Пекарня</option>
-                        </select>
-                    </label>
-                </div>
-
-                {/* Общие поля */}
-                <div>
-                    <label>
-                        Email:
-                        <input type="email" name="email" required value={formData.email} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Пароль:
-                        <input type="password" name="password" required value={formData.password} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Подтвердите пароль:
-                        <input type="password" name="confirmPassword" required value={formData.confirmPassword} onChange={handleChange} />
-                    </label>
-                </div>
-
-                {/* Поля для покупателя */}
+        <Container sx={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+            <Typography variant="h4" gutterBottom>
+                Регистрация
+            </Typography>
+            <ToastContainer />
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <FormControl fullWidth>
+                    <InputLabel>Я хочу зарегистрироваться как</InputLabel>
+                    <Select value={role} label="Я хочу зарегистрироваться как" onChange={handleRoleChange}>
+                        <MenuItem value="user">Покупатель</MenuItem>
+                        <MenuItem value="bakery">Пекарня</MenuItem>
+                    </Select>
+                </FormControl>
+                <TextField
+                    label="Email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Пароль"
+                    name="password"
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Подтвердите пароль"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                />
                 {role === 'user' && (
                     <>
-                        <div>
-                            <label>
-                                Имя:
-                                <input type="text" name="name" required value={formData.name} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Фамилия:
-                                <input type="text" name="surname" required value={formData.surname} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Телефон:
-                                <input type="text" name="phone" required value={formData.phone} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Дата рождения:
-                                <input type="date" name="birth_date" value={formData.birth_date} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Описание:
-                                <textarea name="description" value={formData.description} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Фото:
-                                <input type="file" accept="image/*" onChange={handlePhotoChange} />
-                            </label>
-                        </div>
+                        <TextField
+                            label="Имя"
+                            name="name"
+                            required
+                            value={formData.name}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Фамилия"
+                            name="surname"
+                            required
+                            value={formData.surname}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Телефон"
+                            name="phone"
+                            required
+                            value={formData.phone}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Дата рождения"
+                            name="birth_date"
+                            type="date"
+                            value={formData.birth_date}
+                            onChange={handleChange}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Описание"
+                            name="description"
+                            multiline
+                            rows={4}
+                            value={formData.description}
+                            onChange={handleChange}
+                        />
+                        <Button variant="contained" component="label">
+                            Загрузить фото
+                            <input type="file" accept="image/*" hidden onChange={handlePhotoChange} />
+                        </Button>
                     </>
                 )}
-
-                {/* Поля для пекарни */}
                 {role === 'bakery' && (
                     <>
-                        <div>
-                            <label>
-                                Название пекарни:
-                                <input type="text" name="bakeryName" required value={formData.bakeryName} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Контактное лицо:
-                                <input type="text" name="contactPersonName" required value={formData.contactPersonName} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Регистрационный номер:
-                                <input type="text" name="registrationNumber" required value={formData.registrationNumber} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Телефон:
-                                <input type="text" name="bakeryPhone" required value={formData.bakeryPhone} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Адрес:
-                                <input type="text" name="address" required value={formData.address} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Описание:
-                                <textarea name="bakeryDescription" value={formData.bakeryDescription} onChange={handleChange} />
-                            </label>
-                        </div>
-
-                        <div>
-                            <label>
-                                Фото:
-                                <input type="file" accept="image/*" onChange={handlePhotoChange} />
-                            </label>
-                        </div>
+                        <TextField
+                            label="Название пекарни"
+                            name="bakeryName"
+                            required
+                            value={formData.bakeryName}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Контактное лицо"
+                            name="contactPersonName"
+                            required
+                            value={formData.contactPersonName}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Регистрационный номер"
+                            name="registrationNumber"
+                            required
+                            value={formData.registrationNumber}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Телефон"
+                            name="bakeryPhone"
+                            required
+                            value={formData.bakeryPhone}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Адрес"
+                            name="address"
+                            required
+                            value={formData.address}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            label="Описание"
+                            name="bakeryDescription"
+                            multiline
+                            rows={4}
+                            value={formData.bakeryDescription}
+                            onChange={handleChange}
+                        />
+                        <Button variant="contained" component="label">
+                            Загрузить фото
+                            <input type="file" accept="image/*" hidden onChange={handlePhotoChange} />
+                        </Button>
                     </>
                 )}
-
-                <button type="submit">Зарегистрироваться</button>
-            </form>
-        </div>
+                <Button type="submit" variant="contained" color="primary">
+                    Зарегистрироваться
+                </Button>
+            </Box>
+        </Container>
     );
 }
 

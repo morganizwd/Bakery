@@ -3,7 +3,8 @@
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import OrderForm from './OrderForm'; // Импортируем OrderForm
+import OrderForm from './OrderForm'; // Import OrderForm
+import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, TextField, Box, Divider } from '@mui/material';
 
 function Cart() {
     const { cartItems, removeFromCart, updateQuantity, totalAmount } = useContext(CartContext);
@@ -21,57 +22,83 @@ function Cart() {
     };
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h1>Корзина</h1>
+        <Container sx={{ padding: '20px' }}>
+            <Typography variant="h3" component="h1" gutterBottom>
+                Корзина
+            </Typography>
             {cartItems.length === 0 ? (
-                <p>Ваша корзина пуста. <Link to="/">Перейти к покупкам</Link></p>
+                <Typography variant="body1">
+                    Ваша корзина пуста. <Link to="/">Перейти к покупкам</Link>
+                </Typography>
             ) : (
-                <div>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                <Box>
+                    <Grid container spacing={4}>
                         {cartItems.map(item => (
-                            <li key={item.id} style={{ display: 'flex', marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
-                                {item.photo && (
-                                    <img
-                                        src={`http://localhost:5000${item.photo}`}
-                                        alt={item.name}
-                                        style={{ width: '150px', height: 'auto', marginRight: '20px' }}
-                                    />
-                                )}
-                                <div style={{ flex: 1 }}>
-                                    <h3>{item.name}</h3>
-                                    <p>{item.description}</p>
-                                    <p>Цена за единицу: {item.price} ₽</p>
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <label>
-                                            Количество:
-                                            <input
+                            <Grid item xs={12} key={item.id}>
+                                <Card sx={{ display: 'flex', marginBottom: '20px' }}>
+                                    {item.photo && (
+                                        <CardMedia
+                                            component="img"
+                                            image={`http://localhost:5000${item.photo}`}
+                                            alt={item.name}
+                                            sx={{ width: 150, height: 'auto' }}
+                                        />
+                                    )}
+                                    <CardContent sx={{ flex: 1 }}>
+                                        <Typography variant="h5" component="h3">
+                                            {item.name}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" paragraph>
+                                            {item.description}
+                                        </Typography>
+                                        <Typography variant="body1" color="text.primary">
+                                            Цена за единицу: {item.price} ₽
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
+                                            <TextField
+                                                label="Количество"
                                                 type="number"
-                                                min="1"
+                                                inputProps={{ min: 1 }}
                                                 value={item.quantity}
                                                 onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                                                style={{ width: '60px', marginLeft: '10px' }}
+                                                sx={{ width: '80px', marginRight: '10px' }}
                                             />
-                                        </label>
-                                        <button
-                                            onClick={() => removeFromCart(item.id)}
-                                            style={{ marginLeft: '10px', padding: '5px 10px' }}
-                                        >
-                                            Удалить
-                                        </button>
-                                    </div>
-                                    <p>Итого: {item.price * item.quantity} ₽</p>
-                                </div>
-                            </li>
+                                            <Button
+                                                variant="outlined"
+                                                color="secondary"
+                                                onClick={() => removeFromCart(item.id)}
+                                            >
+                                                Удалить
+                                            </Button>
+                                        </Box>
+                                        <Typography variant="body1" sx={{ marginTop: '10px' }}>
+                                            Итого: {item.price * item.quantity} ₽
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
                         ))}
-                    </ul>
-                    <h2>Общая сумма: {totalAmount} ₽</h2>
-                    <button onClick={toggleOrderForm} style={{ padding: '10px 20px', fontSize: '16px', marginTop: '20px' }}>
+                    </Grid>
+                    <Divider sx={{ marginY: '20px' }} />
+                    <Typography variant="h4" component="h2">
+                        Общая сумма: {totalAmount} ₽
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={toggleOrderForm}
+                        sx={{ padding: '10px 20px', fontSize: '16px', marginTop: '20px' }}
+                    >
                         {showOrderForm ? 'Отмена' : 'Сформировать заказ'}
-                    </button>
-                    {showOrderForm && <OrderForm />}
-                </div>
+                    </Button>
+                    {showOrderForm && (
+                        <Box sx={{ marginTop: '20px' }}>
+                            <OrderForm />
+                        </Box>
+                    )}
+                </Box>
             )}
-        </div>
+        </Container>
     );
 }
 

@@ -1,9 +1,6 @@
-// models/models.js
-
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-// Определение моделей
 const User = sequelize.define('User', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false },
@@ -39,13 +36,13 @@ const Product = sequelize.define('Product', {
 
 const Basket = sequelize.define('Basket', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  userId: { type: DataTypes.INTEGER, allowNull: false }, // Добавлено поле userId
+  userId: { type: DataTypes.INTEGER, allowNull: false }, 
 }, { timestamps: true });
 
 const BasketItem = sequelize.define('BasketItem', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  basketId: { type: DataTypes.INTEGER, allowNull: false }, // Добавлено поле basketId
-  productId: { type: DataTypes.INTEGER, allowNull: false }, // Добавлено поле productId
+  basketId: { type: DataTypes.INTEGER, allowNull: false }, 
+  productId: { type: DataTypes.INTEGER, allowNull: false }, 
   quantity: { type: DataTypes.INTEGER, allowNull: false },
 }, { timestamps: true });
 
@@ -75,57 +72,42 @@ const Review = sequelize.define('Review', {
   bakeryId: { type: DataTypes.INTEGER, allowNull: false },
 }, { timestamps: true });
 
-// Ассоциации
-
-// User и Basket
 User.hasOne(Basket, { foreignKey: 'userId' });
 Basket.belongsTo(User, { foreignKey: 'userId' });
 
-// User и Order
 User.hasMany(Order, { foreignKey: 'userId' });
 Order.belongsTo(User, { foreignKey: 'userId' });
 
-// Bakery и Order
 Bakery.hasMany(Order, { foreignKey: 'bakeryId' });
 Order.belongsTo(Bakery, { foreignKey: 'bakeryId' });
 
-// Bakery и Product
 Bakery.hasMany(Product, { foreignKey: 'bakeryId' });
 Product.belongsTo(Bakery, { foreignKey: 'bakeryId' });
 
-// Bakery и Review
 Bakery.hasMany(Review, { foreignKey: 'bakeryId' });
 Review.belongsTo(Bakery, { foreignKey: 'bakeryId' });
 
-// Order и Review
 Order.hasOne(Review, { foreignKey: 'orderId' });
 Review.belongsTo(Order, { foreignKey: 'orderId' });
 
-// Basket и Product через BasketItem
 Basket.belongsToMany(Product, { through: BasketItem, foreignKey: 'basketId', otherKey: 'productId' });
 Product.belongsToMany(Basket, { through: BasketItem, foreignKey: 'productId', otherKey: 'basketId' });
 
-// Order и Product через OrderItem
 Order.belongsToMany(Product, { through: OrderItem, foreignKey: 'orderId', otherKey: 'productId' });
 Product.belongsToMany(Order, { through: OrderItem, foreignKey: 'productId', otherKey: 'orderId' });
 
-// Order и OrderItem
 Order.hasMany(OrderItem, { foreignKey: 'orderId' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 
-// Product и OrderItem
 Product.hasMany(OrderItem, { foreignKey: 'productId' });
 OrderItem.belongsTo(Product, { foreignKey: 'productId' });
 
-// Basket и BasketItem (явные ассоциации)
 Basket.hasMany(BasketItem, { foreignKey: 'basketId' });
 BasketItem.belongsTo(Basket, { foreignKey: 'basketId' });
 
-// Product и BasketItem (явные ассоциации)
 Product.hasMany(BasketItem, { foreignKey: 'productId' });
 BasketItem.belongsTo(Product, { foreignKey: 'productId' });
 
-// User и Review
 User.hasMany(Review, { foreignKey: 'userId' });
 Review.belongsTo(User, { foreignKey: 'userId' });
 

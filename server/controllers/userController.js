@@ -106,6 +106,10 @@ class UserController {
             const { name, surname, email, password, phone, birth_date, description } = req.body;
             const userId = req.params.id;
 
+            if (req.user.userId !== parseInt(userId, 10)) {
+                return res.status(403).json({ message: 'Нет прав для обновления этого профиля' });
+            }
+
             const user = await User.findByPk(userId);
             if (!user) {
                 return res.status(404).json({ message: 'Пользователь не найден' });
@@ -137,14 +141,20 @@ class UserController {
 
     async delete(req, res) {
         try {
-            const user = await User.findByPk(req.params.id);
+            const userId = req.params.id;
+    
+            if (req.user.userId !== parseInt(userId, 10)) {
+                return res.status(403).json({ message: 'Нет прав для удаления этого профиля' });
+            }
+    
+            const user = await User.findByPk(userId);
             if (!user) {
                 return res.status(404).json({ message: 'Пользователь не найден' });
             }
-
+    
             await user.destroy();
-
-            res.status(200).json({ message: 'Пользователь успешно удален' });
+    
+            res.status(200).json({ message: 'Пользователь успешно удалён' });
         } catch (error) {
             console.error('Ошибка при удалении пользователя:', error);
             res.status(500).json({ message: 'Ошибка сервера' });

@@ -6,7 +6,7 @@ class ProductController {
     async create(req, res) {
         try {
             const { name, description, price } = req.body;
-            const bakeryId = req.user.bakeryId; // Получаем bakeryId из req.user
+            const bakeryId = req.user.bakeryId;
 
             if (!bakeryId) {
                 return res.status(403).json({ message: 'Нет прав для создания товара' });

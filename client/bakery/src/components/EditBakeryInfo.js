@@ -1,6 +1,9 @@
+// src/components/EditBakeryInfo.js
+
 import React, { useState, useEffect, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { AuthContext } from '../context/AuthContext';
+import { Container, Typography, TextField, Button, Box, InputLabel, CardMedia } from '@mui/material';
 
 function EditBakeryInfo() {
     const { authData } = useContext(AuthContext);
@@ -77,82 +80,80 @@ function EditBakeryInfo() {
     };
 
     return (
-        <div>
-            <h2>Редактировать информацию о пекарне</h2>
+        <Container sx={{ padding: '20px' }}>
+            <Typography variant="h4" component="h1" gutterBottom>
+                Редактировать информацию о пекарне
+            </Typography>
             {currentPhoto && (
-                <div>
-                    <p>Текущая фотография:</p>
-                    <img
-                        src={`http://localhost:5000${currentPhoto}`}
+                <Box sx={{ marginBottom: '20px' }}>
+                    <Typography variant="body1">Текущая фотография:</Typography>
+                    <CardMedia
+                        component="img"
+                        image={`http://localhost:5000${currentPhoto}`}
                         alt={formData.name}
-                        style={{ width: '200px', height: 'auto' }}
+                        sx={{ width: '200px', height: 'auto', marginTop: '10px' }}
                     />
-                </div>
+                </Box>
             )}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>
-                        Название пекарни:
-                        <input type="text" name="name" required value={formData.name} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Контактное лицо:
-                        <input
-                            type="text"
-                            name="contact_person_name"
-                            required
-                            value={formData.contact_person_name}
-                            onChange={handleChange}
-                        />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Регистрационный номер:
-                        <input
-                            type="text"
-                            name="registration_number"
-                            required
-                            value={formData.registration_number}
-                            onChange={handleChange}
-                        />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Телефон:
-                        <input type="text" name="phone" required value={formData.phone} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Адрес:
-                        <input type="text" name="address" required value={formData.address} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Описание:
-                        <textarea name="description" value={formData.description} onChange={handleChange} />
-                    </label>
-                </div>
-                
-                <div>
-                    <label>
-                        Фото:
-                        <input type="file" accept="image/*" onChange={handlePhotoChange} />
-                    </label>
-                </div>
-                <button type="submit">Сохранить изменения</button>
-            </form>
-        </div>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <TextField
+                    label="Название пекарни"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Контактное лицо"
+                    name="contact_person_name"
+                    required
+                    value={formData.contact_person_name}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Регистрационный номер"
+                    name="registration_number"
+                    required
+                    value={formData.registration_number}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Телефон"
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Адрес"
+                    name="address"
+                    required
+                    value={formData.address}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Описание"
+                    name="description"
+                    multiline
+                    rows={4}
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+                <Box>
+                    <InputLabel htmlFor="photo-upload">Фото</InputLabel>
+                    <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        style={{ marginTop: '10px' }}
+                    />
+                </Box>
+                <Button type="submit" variant="contained" color="primary" sx={{ padding: '10px 20px', fontSize: '16px' }}>
+                    Сохранить изменения
+                </Button>
+            </Box>
+        </Container>
     );
 }
 

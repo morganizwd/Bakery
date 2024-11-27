@@ -1,5 +1,3 @@
-// controllers/reviewController.js
-
 const { Review, User, Bakery, Order } = require('../models/models');
 
 class ReviewController {
@@ -18,7 +16,7 @@ class ReviewController {
                 return res.status(404).json({ message: 'Заказ не найден' });
             }
 
-            if (order.status !== 'выполнен') { // Проверяем статус заказа
+            if (order.status !== 'выполнен') {
                 return res.status(400).json({ message: 'Отзыв можно оставить только для выполненных заказов' });
             }
 

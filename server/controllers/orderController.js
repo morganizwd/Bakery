@@ -1,21 +1,17 @@
-// controllers/orderController.js
 const { Order, OrderItem, Basket, BasketItem, Product, User, Bakery, Review } = require('../models/models');
 
 class OrderController {
 
-    // Создание нового заказа
     async createOrder(req, res) {
         try {
             const { delivery_address, description } = req.body;
 
-            // Получаем ID пользователя из запроса (предполагается, что аутентификация выполнена)
             const userId = req.user.userId;
             console.log('User ID:', userId);
             if (!userId) {
                 return res.status(401).json({ message: 'Неавторизованный пользователь' });
             }
 
-            // Получаем корзину пользователя, включая BasketItem и Product
             const basket = await Basket.findOne({
                 where: { userId },
                 include: [{
@@ -34,15 +30,12 @@ class OrderController {
                 return res.status(400).json({ message: 'Ваша корзина пуста' });
             }
 
-            // Формируем имя заказа
             const orderName = basket.BasketItems.map(item => `${item.Product.name} x ${item.quantity}`).join('; ');
             console.log('Order Name:', orderName);
 
-            // Вычисляем общую сумму заказа
             const totalCost = basket.BasketItems.reduce((acc, item) => acc + item.Product.price * item.quantity, 0);
             console.log('Total Cost:', totalCost);
 
-            // Проверяем, что все товары принадлежат одной пекарне
             const bakeryIds = [...new Set(basket.BasketItems.map(p => p.Product.bakeryId))];
             console.log('Bakery IDs:', bakeryIds);
             if (bakeryIds.length > 1) {
@@ -51,13 +44,12 @@ class OrderController {
             const bakeryId = bakeryIds[0];
             console.log('Bakery ID:', bakeryId);
 
-            // Создаём заказ
             const order = await Order.create({
                 delivery_address,
                 description,
                 total_cost: totalCost,
                 name: orderName,
-                status: 'на рассмотрении', // Устанавливаем статус по умолчанию
+                status: 'на рассмотрении', 
                 date_of_ordering: new Date(),
                 userId,
                 bakeryId,
@@ -65,7 +57,6 @@ class OrderController {
 
             console.log('Created Order:', order);
 
-            // Создаём OrderItems
             const orderItems = basket.BasketItems.map(item => ({
                 orderId: order.id,
                 productId: item.productId,
@@ -75,7 +66,6 @@ class OrderController {
             await OrderItem.bulkCreate(orderItems);
             console.log('Order Items:', orderItems);
 
-            // Очищаем корзину
             await BasketItem.destroy({ where: { basketId: basket.id } });
             console.log('Basket cleared.');
 
@@ -86,7 +76,6 @@ class OrderController {
         }
     }
 
-    // Получение всех заказов пользователя
     async getUserOrders(req, res) {
         try {
             const userId = req.user.userId;
@@ -116,7 +105,6 @@ class OrderController {
         }
     }
 
-    // Получение конкретного заказа по ID
     async getOrderById(req, res) {
         try {
             const { id } = req.params;
@@ -145,7 +133,6 @@ class OrderController {
         }
     }
 
-    // Обновление статуса заказа
     async updateOrderStatus(req, res) {
         try {
             const { id } = req.params;
@@ -157,7 +144,6 @@ class OrderController {
                 return res.status(404).json({ message: 'Заказ не найден' });
             }
 
-            // Статус может быть только определёнными значениями
             const allowedStatuses = ['на рассмотрении', 'выполняется', 'выполнен', 'отменён'];
             if (!allowedStatuses.includes(status)) {
                 return res.status(400).json({ message: 'Недопустимый статус заказа' });
@@ -173,7 +159,6 @@ class OrderController {
         }
     }
 
-    // Удаление заказа
     async deleteOrder(req, res) {
         try {
             const { id } = req.params;
@@ -184,15 +169,12 @@ class OrderController {
                 return res.status(404).json({ message: 'Заказ не найден' });
             }
 
-            // Проверяем, что заказ принадлежит текущему пользователю
             if (order.userId !== req.user.userId) {
                 return res.status(403).json({ message: 'Нет прав для удаления этого заказа' });
             }
 
-            // Удаляем связанные OrderItems
             await OrderItem.destroy({ where: { orderId: id } });
 
-            // Удаляем сам заказ
             await order.destroy();
 
             res.status(200).json({ message: 'Заказ успешно удален' });
@@ -210,13 +192,11 @@ class OrderController {
                 return res.status(401).json({ message: 'Неавторизованный пользователь' });
             }
 
-            // Проверяем существование пекарни
             const bakery = await Bakery.findByPk(bakeryId);
             if (!bakery) {
                 return res.status(404).json({ message: 'Пекарня не найдена' });
             }
 
-            // Получаем заказы, связанные с этой пекарней
             const orders = await Order.findAll({
                 where: { bakeryId: bakery.id },
                 include: [

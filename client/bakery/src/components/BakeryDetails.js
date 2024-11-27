@@ -1,18 +1,17 @@
-// src/components/BakeryDetails.js
-
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { useParams } from 'react-router-dom';
-import { CartContext } from '../context/CartContext'; // Импортируем CartContext
-import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'; // Импорт иконок звезд (если используете react-icons)
+import { CartContext } from '../context/CartContext';
+import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, TextField, CircularProgress, Box, Divider, IconButton } from '@mui/material';
 
 function BakeryDetails() {
     const { id } = useParams();
     const [bakery, setBakery] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { addToCart } = useContext(CartContext); // Получаем функцию addToCart из контекста
-    const [quantities, setQuantities] = useState({}); // Состояние для хранения количества каждого товара
+    const { addToCart } = useContext(CartContext);
+    const [quantities, setQuantities] = useState({});
 
     useEffect(() => {
         fetchBakery();
@@ -52,14 +51,12 @@ function BakeryDetails() {
         alert(`Добавлено ${quantity} x ${product.name} в корзину!`);
     };
 
-    // Функция для вычисления среднего рейтинга
     const calculateAverageRating = () => {
         if (reviews.length === 0) return 0;
         const total = reviews.reduce((acc, review) => acc + review.rating, 0);
-        return (total / reviews.length).toFixed(1); // Округление до одного знака после запятой
+        return (total / reviews.length).toFixed(1);
     };
 
-    // Функция для рендеринга звезд (используя react-icons)
     const renderStars = (rating) => {
         const stars = [];
         for (let i = 1; i <= 5; i++) {
@@ -75,100 +72,128 @@ function BakeryDetails() {
     };
 
     return (
-        <div style={{ padding: '20px' }}>
+        <Container sx={{ padding: '20px' }}>
             {loading ? (
-                <p>Загрузка...</p>
+                <CircularProgress />
             ) : bakery ? (
-                <div>
-                    <h1>{bakery.name}</h1>
-                    {/* Отображение среднего рейтинга */}
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ marginRight: '8px', fontSize: '1.2em' }}>Рейтинг:</span>
-                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                <Box>
+                    <Typography variant="h3" component="h1" gutterBottom>
+                        {bakery.name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                        <Typography variant="h6" sx={{ marginRight: '8px' }}>Рейтинг:</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             {renderStars(calculateAverageRating())}
-                            <span style={{ marginLeft: '8px', fontSize: '1.2em' }}>
+                            <Typography variant="h6" sx={{ marginLeft: '8px' }}>
                                 {calculateAverageRating()} / 5
-                            </span>
-                        </span>
-                        <span style={{ marginLeft: '8px', color: '#555' }}>({reviews.length} отзывов)</span>
-                    </div>
+                            </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ marginLeft: '8px', color: '#555' }}>
+                            ({reviews.length} отзывов)
+                        </Typography>
+                    </Box>
 
                     {bakery.photo && (
-                        <img
-                            src={`http://localhost:5000${bakery.photo}`}
+                        <CardMedia
+                            component="img"
+                            image={`http://localhost:5000${bakery.photo}`}
                             alt={bakery.name}
-                            style={{ width: '300px', height: 'auto' }}
+                            sx={{ width: '300px', height: 'auto', marginBottom: '20px' }}
                         />
                     )}
-                    <p>{bakery.description}</p>
-                    <p>Адрес: {bakery.address}</p>
-                    <p>Телефон: {bakery.phone}</p>
-                    <p>Контактное лицо: {bakery.contact_person_name}</p>
+                    <Typography variant="body1" paragraph>
+                        {bakery.description}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                        Адрес: {bakery.address}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                        Телефон: {bakery.phone}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                        Контактное лицо: {bakery.contact_person_name}
+                    </Typography>
 
-                    <h2>Товары</h2>
+                    <Typography variant="h4" component="h2" gutterBottom>
+                        Товары
+                    </Typography>
                     {bakery.Products && bakery.Products.length > 0 ? (
-                        <ul>
+                        <Grid container spacing={4}>
                             {bakery.Products.map((product) => (
-                                <li key={product.id} style={{ marginBottom: '20px' }}>
-                                    <h3>{product.name}</h3>
-                                    {product.photo && (
-                                        <img
-                                            src={`http://localhost:5000${product.photo}`}
-                                            alt={product.name}
-                                            style={{ width: '200px', height: 'auto' }}
-                                        />
-                                    )}
-                                    <p>{product.description}</p>
-                                    <p>Цена: {product.price} ₽</p>
-                                    <div>
-                                        <label>
-                                            Количество:
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                value={quantities[product.id] || 1}
-                                                onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                                                style={{ width: '60px', marginLeft: '10px' }}
+                                <Grid item xs={12} sm={6} md={4} key={product.id}>
+                                    <Card>
+                                        {product.photo && (
+                                            <CardMedia
+                                                component="img"
+                                                height="200"
+                                                image={`http://localhost:5000${product.photo}`}
+                                                alt={product.name}
                                             />
-                                        </label>
-                                        <button
-                                            onClick={() => handleAddToCart(product)}
-                                            style={{ marginLeft: '10px' }}
-                                        >
-                                            Добавить в корзину
-                                        </button>
-                                    </div>
-                                </li>
+                                        )}
+                                        <CardContent>
+                                            <Typography variant="h5" component="h3">
+                                                {product.name}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" paragraph>
+                                                {product.description}
+                                            </Typography>
+                                            <Typography variant="body1" color="text.primary" paragraph>
+                                                Цена: {product.price} ₽
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <TextField
+                                                    label="Количество"
+                                                    type="number"
+                                                    inputProps={{ min: 1 }}
+                                                    value={quantities[product.id] || 1}
+                                                    onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                                                    sx={{ width: '80px', marginRight: '10px' }}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => handleAddToCart(product)}
+                                                >
+                                                    Добавить в корзину
+                                                </Button>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
                             ))}
-                        </ul>
+                        </Grid>
                     ) : (
-                        <p>Товары не найдены.</p>
+                        <Typography variant="body1">Товары не найдены.</Typography>
                     )}
 
-                    {/* Секция Отзывов */}
-                    <h2>Отзывы</h2>
+                    <Typography variant="h4" component="h2" gutterBottom sx={{ marginTop: '20px' }}>
+                        Отзывы
+                    </Typography>
                     {reviews.length > 0 ? (
-                        <ul>
+                        <Box>
                             {reviews.map(review => (
-                                <li key={review.id} style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
-                                    <p><strong>{review.User.name} {review.User.surname}</strong> оценил(а) на {review.rating} звезд</p>
-                                    <p><em>{review.short_review}</em></p>
-                                    <p>{review.description}</p>
-                                    <p><small>{new Date(review.createdAt).toLocaleString()}</small></p>
-                                </li>
+                                <Box key={review.id} sx={{ marginBottom: '20px' }}>
+                                    <Divider sx={{ marginBottom: '10px' }} />
+                                    <Typography variant="body1" fontWeight="bold">
+                                        {review.User.name} {review.User.surname} оценил(а) на {review.rating} звезд
+                                    </Typography>
+                                    <Typography variant="body2" paragraph><em>{review.short_review}</em></Typography>
+                                    <Typography variant="body2" paragraph>{review.description}</Typography>
+                                    <Typography variant="caption" display="block">
+                                        {new Date(review.createdAt).toLocaleString()}
+                                    </Typography>
+                                </Box>
                             ))}
-                        </ul>
+                        </Box>
                     ) : (
-                        <p>Нет отзывов.</p>
+                        <Typography variant="body1">Нет отзывов.</Typography>
                     )}
-                </div>
+                </Box>
             ) : (
-                <p>Пекарня не найдена.</p>
+                <Typography variant="body1">Пекарня не найдена.</Typography>
             )}
-        </div>
+        </Container>
     );
-
-
 }
 
 export default BakeryDetails;

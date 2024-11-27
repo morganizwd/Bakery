@@ -1,24 +1,29 @@
-// src/components/ReviewList.js
-
 import React from 'react';
+import { Container, Typography, Box, Paper } from '@mui/material';
 
 function ReviewList({ reviews }) {
     if (reviews.length === 0) {
-        return <p>Отзывов пока нет.</p>;
+        return (
+            <Container sx={{ padding: '20px' }}>
+                <Typography variant="h6">Отзывов пока нет.</Typography>
+            </Container>
+        );
     }
 
     return (
-        <div>
-            {reviews.map(review => (
-                <div key={review.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
-                    <p><strong>Рейтинг:</strong> {review.rating} / 5</p>
-                    <p><strong>Краткий отзыв:</strong> {review.short_review}</p>
-                    <p><strong>Описание:</strong> {review.description}</p>
-                    <p><strong>Пользователь:</strong> {review.User?.name} {review.User?.surname}</p>
-                    <p><strong>Дата:</strong> {new Date(review.createdAt).toLocaleString()}</p>
-                </div>
+        <Container sx={{ padding: '20px' }}>
+            {reviews.map((review) => (
+                <Paper key={review.id} sx={{ padding: '20px', marginBottom: '10px' }}>
+                    <Box>
+                        <Typography variant="subtitle1"><strong>Рейтинг:</strong> {review.rating} / 5</Typography>
+                        <Typography variant="body1"><strong>Краткий отзыв:</strong> {review.short_review}</Typography>
+                        <Typography variant="body2" sx={{ marginTop: '10px' }}><strong>Описание:</strong> {review.description}</Typography>
+                        <Typography variant="body2" sx={{ marginTop: '10px' }}><strong>Пользователь:</strong> {review.User?.name} {review.User?.surname}</Typography>
+                        <Typography variant="caption" sx={{ marginTop: '10px', display: 'block' }}><strong>Дата:</strong> {new Date(review.createdAt).toLocaleString()}</Typography>
+                    </Box>
+                </Paper>
             ))}
-        </div>
+        </Container>
     );
 }
 

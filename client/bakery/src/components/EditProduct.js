@@ -1,7 +1,10 @@
+// src/components/EditProduct.js
+
 import React, { useState, useEffect, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { Container, Typography, TextField, Button, Box, InputLabel } from '@mui/material';
 
 function EditProduct() {
     const { id } = useParams();
@@ -67,40 +70,50 @@ function EditProduct() {
     };
 
     return (
-        <div>
-            <h2>Редактировать товар</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>
-                        Название:
-                        <input type="text" name="name" required value={formData.name} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Описание:
-                        <textarea name="description" required value={formData.description} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Цена:
-                        <input type="number" name="price" required value={formData.price} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Фото:
-                        <input type="file" accept="image/*" onChange={handlePhotoChange} />
-                    </label>
-                </div>
-
-                <button type="submit">Сохранить изменения</button>
-            </form>
-        </div>
+        <Container sx={{ padding: '20px' }}>
+            <Typography variant="h4" component="h1" gutterBottom>
+                Редактировать товар
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <TextField
+                    label="Название"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Описание"
+                    name="description"
+                    required
+                    multiline
+                    rows={4}
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Цена"
+                    name="price"
+                    type="number"
+                    required
+                    value={formData.price}
+                    onChange={handleChange}
+                />
+                <Box>
+                    <InputLabel htmlFor="photo-upload">Фото</InputLabel>
+                    <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        style={{ marginTop: '10px' }}
+                    />
+                </Box>
+                <Button type="submit" variant="contained" color="primary" sx={{ padding: '10px 20px', fontSize: '16px' }}>
+                    Сохранить изменения
+                </Button>
+            </Box>
+        </Container>
     );
 }
 

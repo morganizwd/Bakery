@@ -1,6 +1,5 @@
 const { Sequelize } = require('sequelize');
 
-// Используйте переменные окружения или значения по умолчанию
 const DB_NAME = process.env.DB_NAME || 'bakery_marketplace';
 const DB_USER = process.env.DB_USER || 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD || '';

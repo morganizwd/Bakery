@@ -1,10 +1,8 @@
-// middleware/authenticateBakery.js
-
 const jwt = require('jsonwebtoken');
 
 const authenticateBakery = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Предполагается формат "Bearer TOKEN"
+    const token = authHeader && authHeader.split(' ')[1]; 
 
     if (!token) {
         return res.status(401).json({ message: 'Нет токена, доступ запрещён' });

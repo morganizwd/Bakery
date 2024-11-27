@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Container, TextField, Button, Typography, Box, InputLabel } from '@mui/material';
 
 function AddProduct() {
     const { authData } = useContext(AuthContext);
@@ -49,40 +50,50 @@ function AddProduct() {
     };
 
     return (
-        <div>
-            <h2>Добавить новый товар</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>
-                        Название:
-                        <input type="text" name="name" required value={formData.name} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Описание:
-                        <textarea name="description" required value={formData.description} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Цена:
-                        <input type="number" name="price" required value={formData.price} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Фото:
-                        <input type="file" accept="image/*" onChange={handlePhotoChange} />
-                    </label>
-                </div>
-
-                <button type="submit">Добавить товар</button>
-            </form>
-        </div>
+        <Container sx={{ padding: '20px' }}>
+            <Typography variant="h4" component="h2" gutterBottom>
+                Добавить новый товар
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <TextField
+                    label="Название"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Описание"
+                    name="description"
+                    required
+                    multiline
+                    rows={4}
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Цена"
+                    name="price"
+                    type="number"
+                    required
+                    value={formData.price}
+                    onChange={handleChange}
+                />
+                <Box>
+                    <InputLabel htmlFor="photo-upload">Фото</InputLabel>
+                    <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        style={{ marginTop: '10px' }}
+                    />
+                </Box>
+                <Button type="submit" variant="contained" color="primary" sx={{ padding: '10px 20px', fontSize: '16px' }}>
+                    Добавить товар
+                </Button>
+            </Box>
+        </Container>
     );
 }
 

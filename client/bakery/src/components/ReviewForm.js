@@ -1,6 +1,7 @@
-// src/components/ReviewForm.js
-
 import React, { useState } from 'react';
+import { Container, Typography, TextField, Button, Box, Rating } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ReviewForm({ bakeryId, onSubmit }) {
     const [rating, setRating] = useState(5);
@@ -12,12 +13,12 @@ function ReviewForm({ bakeryId, onSubmit }) {
         e.preventDefault();
 
         if (!orderId) {
-            alert('Пожалуйста, введите ID заказа');
+            toast.error('Пожалуйста, введите ID заказа');
             return;
         }
 
         if (rating < 1 || rating > 5) {
-            alert('Рейтинг должен быть от 1 до 5');
+            toast.error('Рейтинг должен быть от 1 до 5');
             return;
         }
 
@@ -29,7 +30,6 @@ function ReviewForm({ bakeryId, onSubmit }) {
             bakeryId,
         });
 
-        // Сброс формы после отправки
         setRating(5);
         setShortReview('');
         setDescription('');
@@ -37,57 +37,49 @@ function ReviewForm({ bakeryId, onSubmit }) {
     };
 
     return (
-        <div>
-            <h3>Написать отзыв</h3>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>
-                        Рейтинг (1-5):
-                        <input
-                            type="number"
-                            min="1"
-                            max="5"
-                            value={rating}
-                            onChange={(e) => setRating(parseInt(e.target.value, 10))}
-                            required
-                        />
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Краткий отзыв:
-                        <input
-                            type="text"
-                            value={shortReview}
-                            onChange={(e) => setShortReview(e.target.value)}
-                            required
-                        />
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Описание:
-                        <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            required
-                        ></textarea>
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        ID Заказа:
-                        <input
-                            type="number"
-                            value={orderId}
-                            onChange={(e) => setOrderId(e.target.value)}
-                            required
-                        />
-                    </label>
-                </div>
-                <button type="submit">Отправить отзыв</button>
-            </form>
-        </div>
+        <Container sx={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+            <Typography variant="h5" gutterBottom>
+                Написать отзыв
+            </Typography>
+            <ToastContainer />
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box>
+                    <Typography component="legend">Рейтинг</Typography>
+                    <Rating
+                        name="rating"
+                        value={rating}
+                        onChange={(e, newValue) => setRating(newValue)}
+                    />
+                </Box>
+                <TextField
+                    label="Краткий отзыв"
+                    name="shortReview"
+                    value={shortReview}
+                    onChange={(e) => setShortReview(e.target.value)}
+                    required
+                />
+                <TextField
+                    label="Описание"
+                    name="description"
+                    multiline
+                    rows={4}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                />
+                <TextField
+                    label="ID Заказа"
+                    name="orderId"
+                    type="number"
+                    value={orderId}
+                    onChange={(e) => setOrderId(e.target.value)}
+                    required
+                />
+                <Button type="submit" variant="contained" color="primary">
+                    Отправить отзыв
+                </Button>
+            </Box>
+        </Container>
     );
 }
 

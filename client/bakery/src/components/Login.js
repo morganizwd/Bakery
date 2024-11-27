@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Container, Typography, TextField, Button, Box, InputLabel, Select, MenuItem } from '@mui/material';
 
 function Login() {
     const [role, setRole] = useState('user'); // 'user' или 'bakery'
@@ -47,36 +48,42 @@ function Login() {
     };
 
     return (
-        <div>
-            <h2>Вход</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>
-                        Я вхожу как:
-                        <select value={role} onChange={handleRoleChange}>
-                            <option value="user">Покупатель</option>
-                            <option value="bakery">Пекарня</option>
-                        </select>
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Email:
-                        <input type="email" name="email" required value={formData.email} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <div>
-                    <label>
-                        Пароль:
-                        <input type="password" name="password" required value={formData.password} onChange={handleChange} />
-                    </label>
-                </div>
-
-                <button type="submit">Войти</button>
-            </form>
-        </div>
+        <Container sx={{ padding: '20px' }}>
+            <Typography variant="h4" component="h1" gutterBottom>
+                Вход
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <InputLabel id="role-select-label">Я вхожу как:</InputLabel>
+                <Select
+                    labelId="role-select-label"
+                    value={role}
+                    onChange={handleRoleChange}
+                    sx={{ marginBottom: '20px' }}
+                >
+                    <MenuItem value="user">Покупатель</MenuItem>
+                    <MenuItem value="bakery">Пекарня</MenuItem>
+                </Select>
+                <TextField
+                    label="Email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                />
+                <TextField
+                    label="Пароль"
+                    name="password"
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                />
+                <Button type="submit" variant="contained" color="primary" sx={{ padding: '10px 20px', fontSize: '16px' }}>
+                    Войти
+                </Button>
+            </Box>
+        </Container>
     );
 }
 
