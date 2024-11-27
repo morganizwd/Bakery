@@ -16,6 +16,16 @@ class UserController {
 
             const passwordHash = await bcrypt.hash(password, 12);
 
+            let photoPath = null;
+            if (req.file) {
+                const uploadDir = path.join(__dirname, '../uploads/users');
+                if (!fs.existsSync(uploadDir)) {
+                    fs.mkdirSync(uploadDir, { recursive: true });
+                }
+                photoPath = `/uploads/users/${Date.now()}_${req.file.originalname}`;
+                fs.writeFileSync(path.join(uploadDir, `${Date.now()}_${req.file.originalname}`), req.file.buffer);
+            }
+
             const user = await User.create({
                 name,
                 surname,
@@ -24,7 +34,7 @@ class UserController {
                 phone,
                 birth_date,
                 description,
-                photo: req.file ? `/uploads/users/${req.file.filename}` : null,
+                photo: photoPath,
             });
 
             res.status(201).json(user);
@@ -142,18 +152,18 @@ class UserController {
     async delete(req, res) {
         try {
             const userId = req.params.id;
-    
+
             if (req.user.userId !== parseInt(userId, 10)) {
                 return res.status(403).json({ message: 'Нет прав для удаления этого профиля' });
             }
-    
+
             const user = await User.findByPk(userId);
             if (!user) {
                 return res.status(404).json({ message: 'Пользователь не найден' });
             }
-    
+
             await user.destroy();
-    
+
             res.status(200).json({ message: 'Пользователь успешно удалён' });
         } catch (error) {
             console.error('Ошибка при удалении пользователя:', error);
