@@ -3,7 +3,7 @@ import axios from '../api/axiosConfig';
 import { useParams } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
-import { AuthContext } from '../context/AuthContext'; // Импортируем AuthContext
+import { AuthContext } from '../context/AuthContext'; 
 import {
     Container,
     Typography,
@@ -24,7 +24,7 @@ function BakeryDetails() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const { addToCart } = useContext(CartContext);
-    const { authData } = useContext(AuthContext); // Используем данные авторизации
+    const { authData } = useContext(AuthContext); 
     const [quantities, setQuantities] = useState({});
 
     useEffect(() => {
@@ -156,7 +156,7 @@ function BakeryDetails() {
                                             <Typography variant="body1" color="text.primary" paragraph>
                                                 Цена: {product.price} ₽
                                             </Typography>
-                                            {authData.isAuthenticated && ( // Кнопка видна только если пользователь авторизован
+                                            {authData.isAuthenticated && ( 
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                     <TextField
                                                         label="Количество"

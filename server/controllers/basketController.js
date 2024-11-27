@@ -55,6 +55,7 @@ class BasketController {
                 basket = await Basket.create({ userId });
             }
 
+            // Проверка на товары из разных пекарен
             if (basket.BasketItems && basket.BasketItems.length > 0) {
                 const existingBakeryId = basket.BasketItems[0].Product.bakeryId;
                 if (existingBakeryId !== product.bakeryId) {
@@ -83,7 +84,6 @@ class BasketController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
-
 
     async removeItem(req, res) {
         try {
