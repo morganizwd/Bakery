@@ -12,15 +12,13 @@ import {
     Divider,
     CircularProgress,
     TextField,
-    Select,
-    MenuItem,
-    InputLabel,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogContentText,
     DialogActions,
 } from '@mui/material';
+import { FaStar } from 'react-icons/fa';
 
 function Orders() {
     const { authData } = useContext(AuthContext);
@@ -114,13 +112,13 @@ function Orders() {
         setReviewData((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleStarClick = (rating) => {
+        setReviewData((prev) => ({ ...prev, rating }));
+    };
+
     const handleSubmitReview = async (e) => {
         e.preventDefault();
 
-        if (reviewData.rating < 1 || reviewData.rating > 5) {
-            alert('Рейтинг должен быть от 1 до 5');
-            return;
-        }
         if (!reviewData.short_review.trim() || !reviewData.description.trim()) {
             alert('Пожалуйста, заполните все поля');
             return;
@@ -158,43 +156,6 @@ function Orders() {
                 Мои заказы
             </Typography>
 
-            {/* Фильтры */}
-            <Box sx={{ display: 'flex', gap: 2, marginBottom: '20px' }}>
-                <TextField
-                    label="Поиск по дате (ГГГГ-ММ-ДД)"
-                    type="date"
-                    value={searchDate}
-                    onChange={(e) => setSearchDate(e.target.value)}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    fullWidth
-                />
-                <Select
-                    value={searchStatus}
-                    onChange={(e) => setSearchStatus(e.target.value)}
-                    displayEmpty
-                    fullWidth
-                >
-                    <MenuItem value="">Все статусы</MenuItem>
-                    {allowedStatuses.map((status) => (
-                        <MenuItem key={status} value={status}>
-                            {status}
-                        </MenuItem>
-                    ))}
-                </Select>
-                <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={() => {
-                        setSearchDate('');
-                        setSearchStatus('');
-                    }}
-                >
-                    Сбросить фильтры
-                </Button>
-            </Box>
-
             {loading ? (
                 <CircularProgress />
             ) : filteredOrders.length === 0 ? (
@@ -209,9 +170,7 @@ function Orders() {
                                     <ListItemText primary={`Адрес доставки: ${order.delivery_address}`} />
                                     <ListItemText primary={`Дата заказа: ${new Date(order.date_of_ordering).toLocaleString()}`} />
                                     <ListItemText primary={`Статус: ${order.status}`} />
-                                    <ListItemText primary={`Время готовнсти: ${order.completion_time}`} />
                                     <ListItemText primary={`Итоговая сумма: ${order.total_cost} ₽`} />
-                                    <ListItemText primary={`Пожелания: ${order.description || 'Отсутствуют'}`} />
                                     <Typography variant="subtitle1" gutterBottom>Товары:</Typography>
                                     <List sx={{ listStyleType: 'disc', paddingLeft: '20px' }}>
                                         {order.OrderItems.map((item) => (
@@ -251,7 +210,56 @@ function Orders() {
                 </List>
             )}
 
-            {/* Диалог отмены заказа */}
+            {selectedOrder && (
+                <Dialog open={Boolean(selectedOrder)} onClose={() => setSelectedOrder(null)}>
+                    <DialogTitle>Написать отзыв</DialogTitle>
+                    <DialogContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <FaStar
+                                    key={star}
+                                    size={24}
+                                    color={reviewData.rating >= star ? '#FFD700' : '#ccc'}
+                                    onClick={() => handleStarClick(star)}
+                                    style={{ cursor: 'pointer', marginRight: '8px' }}
+                                />
+                            ))}
+                        </Box>
+                        <TextField
+                            label="Короткий отзыв"
+                            name="short_review"
+                            value={reviewData.short_review}
+                            onChange={handleReviewChange}
+                            fullWidth
+                            margin="normal"
+                        />
+                        <TextField
+                            label="Описание"
+                            name="description"
+                            value={reviewData.description}
+                            onChange={handleReviewChange}
+                            fullWidth
+                            multiline
+                            rows={4}
+                            margin="normal"
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setSelectedOrder(null)} color="primary">
+                            Отмена
+                        </Button>
+                        <Button
+                            onClick={handleSubmitReview}
+                            color="primary"
+                            variant="contained"
+                            disabled={submitting}
+                        >
+                            {submitting ? 'Отправка...' : 'Отправить'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            )}
+
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
                 <DialogTitle>Подтверждение отмены</DialogTitle>
                 <DialogContent>
