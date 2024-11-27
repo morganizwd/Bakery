@@ -7,7 +7,7 @@ class BasketController {
 
             console.log(`Получение корзины для пользователя ID: ${userId}`);
 
-            const basket = await Basket.findOne({
+            let basket = await Basket.findOne({
                 where: { userId },
                 include: [
                     {
@@ -17,12 +17,12 @@ class BasketController {
                 ],
             });
 
-            console.log('Полученная корзина:', basket);
-
             if (!basket) {
-                return res.status(404).json({ message: 'Корзина не найдена' });
+                console.log('Корзина отсутствует. Создание новой корзины.');
+                basket = await Basket.create({ userId });
             }
 
+            console.log('Полученная корзина:', basket);
             res.json(basket);
         } catch (error) {
             console.error('Ошибка при получении корзины:', error);
@@ -40,12 +40,22 @@ class BasketController {
                 return res.status(404).json({ message: 'Товар не найден' });
             }
 
-            const basket = await Basket.findOne({
+            let basket = await Basket.findOne({
                 where: { userId },
-                include: [{ model: BasketItem, include: [Product] }],
+                include: [
+                    {
+                        model: BasketItem,
+                        include: [Product], // Включаем связанные товары
+                    },
+                ],
             });
 
-            if (basket && basket.BasketItems.length > 0) {
+            if (!basket) {
+                console.log('Корзина отсутствует. Создание новой корзины.');
+                basket = await Basket.create({ userId });
+            }
+
+            if (basket.BasketItems && basket.BasketItems.length > 0) {
                 const existingBakeryId = basket.BasketItems[0].Product.bakeryId;
                 if (existingBakeryId !== product.bakeryId) {
                     return res.status(400).json({ message: 'В корзине могут быть товары только из одной пекарни.' });
@@ -73,6 +83,7 @@ class BasketController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
 
     async removeItem(req, res) {
         try {

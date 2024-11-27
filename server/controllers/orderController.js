@@ -5,70 +5,54 @@ class OrderController {
     async createOrder(req, res) {
         try {
             const { delivery_address, description } = req.body;
-
             const userId = req.user.userId;
+
             console.log('User ID:', userId);
-            if (!userId) {
-                return res.status(401).json({ message: 'Неавторизованный пользователь' });
-            }
 
             const basket = await Basket.findOne({
                 where: { userId },
-                include: [{
-                    model: BasketItem,
-                    include: [Product],
-                }]
+                include: [
+                    {
+                        model: BasketItem,
+                        include: [Product],
+                    },
+                ],
             });
 
             console.log('Basket:', basket);
 
-            if (!basket) {
-                return res.status(400).json({ message: 'Корзина не найдена' });
-            }
-
-            if (basket.BasketItems.length === 0) {
+            if (!basket || basket.BasketItems.length === 0) {
                 return res.status(400).json({ message: 'Ваша корзина пуста' });
             }
 
-            const orderName = basket.BasketItems.map(item => `${item.Product.name} x ${item.quantity}`).join('; ');
-            console.log('Order Name:', orderName);
-
             const totalCost = basket.BasketItems.reduce((acc, item) => acc + item.Product.price * item.quantity, 0);
-            console.log('Total Cost:', totalCost);
+            const bakeryIds = [...new Set(basket.BasketItems.map((item) => item.Product.bakeryId))];
 
-            const bakeryIds = [...new Set(basket.BasketItems.map(p => p.Product.bakeryId))];
-            console.log('Bakery IDs:', bakeryIds);
             if (bakeryIds.length > 1) {
                 return res.status(400).json({ message: 'Все товары должны принадлежать одной пекарне' });
             }
-            const bakeryId = bakeryIds[0];
-            console.log('Bakery ID:', bakeryId);
 
             const order = await Order.create({
                 delivery_address,
                 description,
                 total_cost: totalCost,
-                name: orderName,
-                status: 'на рассмотрении', 
+                name: basket.BasketItems.map((item) => `${item.Product.name} x ${item.quantity}`).join('; '),
+                status: 'на рассмотрении',
                 date_of_ordering: new Date(),
                 userId,
-                bakeryId,
+                bakeryId: bakeryIds[0],
             });
 
-            console.log('Created Order:', order);
-
-            const orderItems = basket.BasketItems.map(item => ({
+            const orderItems = basket.BasketItems.map((item) => ({
                 orderId: order.id,
                 productId: item.productId,
                 quantity: item.quantity,
             }));
 
             await OrderItem.bulkCreate(orderItems);
-            console.log('Order Items:', orderItems);
-
             await BasketItem.destroy({ where: { basketId: basket.id } });
-            console.log('Basket cleared.');
 
+            console.log('Order created successfully:', order);
             res.status(201).json({ message: 'Заказ успешно создан', order });
         } catch (error) {
             console.error('Ошибка при создании заказа:', error);
