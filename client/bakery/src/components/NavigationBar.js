@@ -20,16 +20,19 @@ const NavigationBar = () => {
         <AppBar position="static">
             <Container maxWidth="lg">
                 <Toolbar>
-                    <Button component={Link} to="/" color="inherit" sx={{ marginRight: 2 }}>
-                        Главная
-                    </Button>
-                    <Button component={Link} to="/cart" color="inherit" sx={{ marginRight: 2 }}>
-                        Корзина
-                    </Button>
+
                     {authData.role === 'user' && (
-                        <Button component={Link} to="/orders" color="inherit" sx={{ marginRight: 2 }}>
-                            Мои заказы
-                        </Button>
+                        <>
+                            <Button component={Link} to="/orders" color="inherit" sx={{ marginRight: 2 }}>
+                                Мои заказы
+                            </Button>
+                            <Button component={Link} to="/" color="inherit" sx={{ marginRight: 2 }}>
+                                Главная
+                            </Button>
+                            <Button component={Link} to="/cart" color="inherit" sx={{ marginRight: 2 }}>
+                                Корзина
+                            </Button>
+                        </>
                     )}
                     {authData.role === 'bakery' && (
                         <Button component={Link} to="/bakery-admin" color="inherit" sx={{ marginRight: 2 }}>

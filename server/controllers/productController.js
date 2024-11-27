@@ -77,7 +77,9 @@ class ProductController {
                     fs.mkdirSync(uploadDir, { recursive: true });
                 }
                 const photoPath = `/uploads/products/${productId}_${req.file.originalname}`;
-                fs.writeFileSync(path.join(uploadDir, `${productId}_${req.file.originalname}`), req.file.buffer);
+                const filePath = path.join(uploadDir, `${productId}_${req.file.originalname}`);
+
+                fs.writeFileSync(filePath, fs.readFileSync(req.file.path));
                 updatedData.photo = photoPath;
             }
 

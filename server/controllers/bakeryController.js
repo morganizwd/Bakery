@@ -142,7 +142,7 @@ class BakeryController {
                 include: [
                     {
                         model: Review,
-                        attributes: [], 
+                        attributes: [],
                     },
                 ],
                 attributes: {
@@ -167,7 +167,7 @@ class BakeryController {
 
             res.json({
                 bakeries: rows,
-                total: count.length, 
+                total: count.length,
             });
         } catch (error) {
             console.error('Ошибка при получении списка пекарен:', error);
@@ -206,14 +206,14 @@ class BakeryController {
             if (password) {
                 updatedData.password = await bcrypt.hash(password, 12);
             }
-
+            
             if (req.file) {
                 const uploadDir = path.join(__dirname, '../uploads/bakeries');
                 if (!fs.existsSync(uploadDir)) {
                     fs.mkdirSync(uploadDir, { recursive: true });
                 }
                 const photoPath = `/uploads/bakeries/${bakeryId}_${req.file.originalname}`;
-                fs.writeFileSync(path.join(uploadDir, `${bakeryId}_${req.file.originalname}`), req.file.buffer);
+                fs.writeFileSync(path.join(uploadDir, `${bakeryId}_${req.file.originalname}`), fs.readFileSync(req.file.path));
                 updatedData.photo = photoPath;
             }
 

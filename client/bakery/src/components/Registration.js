@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import axios from '../api/axiosConfig';
+import { useNavigate } from 'react-router-dom';
 import { Container, Typography, TextField, Button, Box, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Registration() {
-    const [role, setRole] = useState('user'); // 'user' или 'bakery'
+    const [role, setRole] = useState('user'); 
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -22,7 +23,10 @@ function Registration() {
         bakeryDescription: '',
         address: '',
     });
-    const [photo, setPhoto] = useState(null); // Для загрузки фото
+    const [photo, setPhoto] = useState(null); 
+    const [photoUploaded, setPhotoUploaded] = useState(false); 
+
+    const navigate = useNavigate(); 
 
     const handleRoleChange = (e) => {
         setRole(e.target.value);
@@ -33,7 +37,9 @@ function Registration() {
     };
 
     const handlePhotoChange = (e) => {
-        setPhoto(e.target.files[0]);
+        const file = e.target.files[0];
+        setPhoto(file);
+        setPhotoUploaded(!!file); 
     };
 
     const handleSubmit = async (e) => {
@@ -75,6 +81,7 @@ function Registration() {
                 },
             });
             toast.success('Регистрация прошла успешно!');
+            setTimeout(() => navigate('/login'), 2000); 
         } catch (error) {
             console.error('Ошибка при регистрации:', error);
             toast.error('Ошибка при регистрации');
@@ -158,8 +165,12 @@ function Registration() {
                             value={formData.description}
                             onChange={handleChange}
                         />
-                        <Button variant="contained" component="label">
-                            Загрузить фото
+                        <Button
+                            variant="contained"
+                            component="label"
+                            disabled={photoUploaded} 
+                        >
+                            {photoUploaded ? 'Фотография загружена' : 'Загрузить фото'}
                             <input type="file" accept="image/*" hidden onChange={handlePhotoChange} />
                         </Button>
                     </>
@@ -209,8 +220,12 @@ function Registration() {
                             value={formData.bakeryDescription}
                             onChange={handleChange}
                         />
-                        <Button variant="contained" component="label">
-                            Загрузить фото
+                        <Button
+                            variant="contained"
+                            component="label"
+                            disabled={photoUploaded} 
+                        >
+                            {photoUploaded ? 'Фотография загружена' : 'Загрузить фото'}
                             <input type="file" accept="image/*" hidden onChange={handlePhotoChange} />
                         </Button>
                     </>
