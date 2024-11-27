@@ -35,21 +35,21 @@ class BasketController {
             const userId = req.user.userId;
             const { productId, quantity } = req.body;
 
-            console.log(`Добавление товара ID: ${productId} в корзину пользователя ID: ${userId} с количеством: ${quantity}`);
-
-            let basket = await Basket.findOne({ where: { userId } });
-            if (!basket) {
-                console.log('Корзина не найдена. Создание новой корзины.');
-                basket = await Basket.create({ userId });
-                console.log('Создана новая корзина:', basket);
-            } else {
-                console.log('Найдена существующая корзина:', basket);
-            }
-
             const product = await Product.findByPk(productId);
             if (!product) {
-                console.log(`Товар с ID: ${productId} не найден.`);
                 return res.status(404).json({ message: 'Товар не найден' });
+            }
+
+            const basket = await Basket.findOne({
+                where: { userId },
+                include: [{ model: BasketItem, include: [Product] }],
+            });
+
+            if (basket && basket.BasketItems.length > 0) {
+                const existingBakeryId = basket.BasketItems[0].Product.bakeryId;
+                if (existingBakeryId !== product.bakeryId) {
+                    return res.status(400).json({ message: 'В корзине могут быть товары только из одной пекарни.' });
+                }
             }
 
             let basketItem = await BasketItem.findOne({
@@ -57,18 +57,14 @@ class BasketController {
             });
 
             if (basketItem) {
-                console.log('Товар уже существует в корзине. Обновление количества.');
                 basketItem.quantity += quantity;
                 await basketItem.save();
-                console.log('Обновлённое количество товара в корзине:', basketItem);
             } else {
-                console.log('Товар не найден в корзине. Создание новой записи BasketItem.');
                 basketItem = await BasketItem.create({
                     basketId: basket.id,
                     productId,
                     quantity,
                 });
-                console.log('Создан новый BasketItem:', basketItem);
             }
 
             res.status(201).json(basketItem);

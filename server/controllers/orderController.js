@@ -202,7 +202,7 @@ class OrderController {
                 include: [
                     {
                         model: User,
-                        attributes: ['name', 'surname'],
+                        attributes: ['name', 'surname', 'phone'],
                     },
                     {
                         model: OrderItem,

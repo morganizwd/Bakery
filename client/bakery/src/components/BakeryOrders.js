@@ -1,5 +1,3 @@
-// src/components/BakeryOrders.js
-
 import React, { useEffect, useState } from 'react';
 import axios from '../api/axiosConfig';
 import {
@@ -22,13 +20,18 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
+    TextField,
+    Box,
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 
 function BakeryOrders() {
     const [orders, setOrders] = useState([]);
+    const [filteredOrders, setFilteredOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchDate, setSearchDate] = useState('');
+    const [searchStatus, setSearchStatus] = useState('');
 
     // Статусы, доступные для обновления
     const allowedStatuses = ['на рассмотрении', 'выполняется', 'выполнен', 'отменён'];
@@ -41,11 +44,16 @@ function BakeryOrders() {
         fetchOrders();
     }, []);
 
+    useEffect(() => {
+        filterOrders();
+    }, [searchDate, searchStatus, orders]);
+
     // Функция для получения заказов
     const fetchOrders = async () => {
         try {
             const response = await axios.get('/api/bakeries/orders');
             setOrders(response.data);
+            setFilteredOrders(response.data);
             setLoading(false);
         } catch (err) {
             console.error('Ошибка при получении заказов:', err);
@@ -54,11 +62,27 @@ function BakeryOrders() {
         }
     };
 
+    // Функция для фильтрации заказов
+    const filterOrders = () => {
+        let filtered = [...orders];
+
+        if (searchDate) {
+            filtered = filtered.filter((order) =>
+                new Date(order.date_of_ordering).toISOString().startsWith(searchDate)
+            );
+        }
+
+        if (searchStatus) {
+            filtered = filtered.filter((order) => order.status === searchStatus);
+        }
+
+        setFilteredOrders(filtered);
+    };
+
     // Функция для обновления статуса заказа
     const handleStatusChange = async (orderId, newStatus) => {
         try {
             const response = await axios.put(`/api/orders/${orderId}/status`, { status: newStatus });
-            // Обновляем локальное состояние
             setOrders((prevOrders) =>
                 prevOrders.map((order) =>
                     order.id === orderId ? { ...order, status: response.data.status } : order
@@ -89,7 +113,6 @@ function BakeryOrders() {
 
         try {
             await axios.delete(`/api/orders/${orderToDelete}`);
-            // Удаляем заказ из локального состояния
             setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderToDelete));
             alert('Заказ успешно удалён.');
         } catch (err) {
@@ -122,7 +145,45 @@ function BakeryOrders() {
             <Typography variant="h4" component="h1" gutterBottom>
                 Управление Заказами
             </Typography>
-            {orders.length === 0 ? (
+
+            {/* Секция фильтров */}
+            <Box sx={{ display: 'flex', gap: 2, marginBottom: '20px' }}>
+                <TextField
+                    label="Поиск по дате (ГГГГ-ММ-ДД)"
+                    type="date"
+                    value={searchDate}
+                    onChange={(e) => setSearchDate(e.target.value)}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    fullWidth
+                />
+                <Select
+                    value={searchStatus}
+                    onChange={(e) => setSearchStatus(e.target.value)}
+                    displayEmpty
+                    fullWidth
+                >
+                    <MenuItem value="">Все статусы</MenuItem>
+                    {allowedStatuses.map((status) => (
+                        <MenuItem key={status} value={status}>
+                            {status}
+                        </MenuItem>
+                    ))}
+                </Select>
+                <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => {
+                        setSearchDate('');
+                        setSearchStatus('');
+                    }}
+                >
+                    Сбросить фильтры
+                </Button>
+            </Box>
+
+            {filteredOrders.length === 0 ? (
                 <Alert severity="info">Нет доступных заказов.</Alert>
             ) : (
                 <TableContainer component={Paper}>
@@ -131,6 +192,7 @@ function BakeryOrders() {
                             <TableRow>
                                 <TableCell>ID Заказа</TableCell>
                                 <TableCell>Имя Клиента</TableCell>
+                                <TableCell>Телефон Клиента</TableCell>
                                 <TableCell>Адрес Доставки</TableCell>
                                 <TableCell>Товары</TableCell>
                                 <TableCell>Общая Стоимость</TableCell>
@@ -140,12 +202,13 @@ function BakeryOrders() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {orders.map((order) => (
+                            {filteredOrders.map((order) => (
                                 <TableRow key={order.id}>
                                     <TableCell>{order.id}</TableCell>
                                     <TableCell>
                                         {order.User.name} {order.User.surname}
                                     </TableCell>
+                                    <TableCell>{order.User.phone}</TableCell>
                                     <TableCell>{order.delivery_address}</TableCell>
                                     <TableCell>
                                         <ul style={{ paddingLeft: '20px', margin: 0 }}>
