@@ -3,7 +3,7 @@ import axios from '../api/axiosConfig';
 import { useParams } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
-import { AuthContext } from '../context/AuthContext'; 
+import { AuthContext } from '../context/AuthContext';
 import {
     Container,
     Typography,
@@ -20,11 +20,11 @@ import {
 
 function BakeryDetails() {
     const { id } = useParams();
+    const { cartItems, addToCart, clearCart } = useContext(CartContext);
+    const { authData } = useContext(AuthContext);
     const [bakery, setBakery] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { addToCart } = useContext(CartContext);
-    const { authData } = useContext(AuthContext); 
     const [quantities, setQuantities] = useState({});
 
     useEffect(() => {
@@ -59,10 +59,15 @@ function BakeryDetails() {
         }
     };
 
-    const handleAddToCart = (product) => {
+    const handleAddToCart = async (product) => {
         const quantity = quantities[product.id] || 1;
-        addToCart(product, quantity);
-        alert(`Добавлено ${quantity} x ${product.name} в корзину!`);
+        try {
+            await addToCart(product, quantity);
+            alert(`Добавлено ${quantity} x ${product.name} в корзину!`);
+        } catch (error) {
+            console.error('Ошибка при добавлении товара в корзину:', error);
+            alert('Не удалось добавить товар в корзину.');
+        }
     };
 
     const calculateAverageRating = () => {
@@ -85,10 +90,17 @@ function BakeryDetails() {
         return stars;
     };
 
+    const isDifferentBakery = cartItems.length > 0 && cartItems[0].bakeryId !== parseInt(id, 10);
+
     return (
         <Container sx={{ padding: '20px' }}>
             {loading ? (
-                <CircularProgress />
+                <Box sx={{ textAlign: 'center', marginTop: '50px' }}>
+                    <CircularProgress />
+                    <Typography variant="h6" sx={{ marginTop: '20px' }}>
+                        Загрузка информации о пекарне...
+                    </Typography>
+                </Box>
             ) : bakery ? (
                 <Box>
                     <Typography variant="h3" component="h1" gutterBottom>
@@ -133,6 +145,24 @@ function BakeryDetails() {
                     <Typography variant="h4" component="h2" gutterBottom>
                         Товары
                     </Typography>
+
+                    {isDifferentBakery && (
+                        <Box sx={{ marginBottom: '10px', padding: '10px', border: '1px solid #f44336', borderRadius: '4px', backgroundColor: '#ffebee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="body1" color="error">
+                                В корзине уже есть товары из другой пекарни. Пожалуйста, очистите корзину перед добавлением новых товаров.
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={() => {
+                                    clearCart();
+                                }}
+                            >
+                                Очистить корзину
+                            </Button>
+                        </Box>
+                    )}
+
                     {bakery.Products && bakery.Products.length > 0 ? (
                         <Grid container spacing={4}>
                             {bakery.Products.map((product) => (
@@ -154,9 +184,9 @@ function BakeryDetails() {
                                                 {product.description}
                                             </Typography>
                                             <Typography variant="body1" color="text.primary" paragraph>
-                                                Цена: {product.price} ₽
+                                                Цена: {product.price} BYN
                                             </Typography>
-                                            {authData.isAuthenticated && ( 
+                                            {authData.isAuthenticated && (
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                     <TextField
                                                         label="Количество"
@@ -172,6 +202,7 @@ function BakeryDetails() {
                                                         variant="contained"
                                                         color="primary"
                                                         onClick={() => handleAddToCart(product)}
+                                                        disabled={isDifferentBakery} 
                                                     >
                                                         Добавить в корзину
                                                     </Button>
@@ -223,6 +254,7 @@ function BakeryDetails() {
             )}
         </Container>
     );
+
 }
 
 export default BakeryDetails;
