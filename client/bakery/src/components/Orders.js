@@ -168,6 +168,7 @@ function Orders() {
                                 <Box sx={{ width: '100%' }}>
                                     <Typography variant="h6">Заказ №{order.id}</Typography>
                                     <ListItemText primary={`Адрес доставки: ${order.delivery_address}`} />
+                                    <ListItemText primary={`Время готовности: ${order.completion_time}`} />
                                     <ListItemText primary={`Дата заказа: ${new Date(order.date_of_ordering).toLocaleString()}`} />
                                     <ListItemText primary={`Статус: ${order.status}`} />
                                     <ListItemText primary={`Итоговая сумма: ${order.total_cost} ₽`} />
