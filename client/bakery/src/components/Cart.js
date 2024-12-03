@@ -1,9 +1,7 @@
-// src/components/Cart.js
-
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import OrderForm from './OrderForm'; // Импорт OrderForm
+import OrderForm from './OrderForm'; 
 import { Container, Typography, Grid, Card, CardContent, CardMedia, Button, TextField, Box, Divider, CircularProgress, Alert } from '@mui/material';
 
 function Cart() {

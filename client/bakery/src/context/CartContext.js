@@ -1,5 +1,3 @@
-// src/context/CartContext.js
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { AuthContext } from './AuthContext';
@@ -34,7 +32,7 @@ export const CartProvider = ({ children }) => {
                     Authorization: `Bearer ${authData.token}`,
                 },
             });
-            console.log('Полученные BasketItems:', response.data.BasketItems); // Для отладки
+            console.log('Полученные BasketItems:', response.data.BasketItems);
             setCartItems(response.data.BasketItems || []);
         } catch (error) {
             console.error('Ошибка при получении корзины:', error);

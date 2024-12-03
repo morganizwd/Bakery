@@ -52,7 +52,6 @@ class BasketController {
                 basket = await Basket.create({ userId });
             }
 
-            // Проверка на товары из разных пекарен
             if (basket.BasketItems && basket.BasketItems.length > 0) {
                 const existingBakeryId = basket.BasketItems[0].Product.bakeryId;
                 if (existingBakeryId !== product.bakeryId) {
@@ -62,7 +61,7 @@ class BasketController {
 
             let basketItem = await BasketItem.findOne({
                 where: { basketId: basket.id, productId },
-                include: [Product], // Включаем Product
+                include: [Product], 
             });
 
             if (basketItem) {
@@ -74,7 +73,7 @@ class BasketController {
                     productId,
                     quantity,
                 });
-                basketItem = await BasketItem.findByPk(basketItem.id, { include: [Product] }); // Получаем Product
+                basketItem = await BasketItem.findByPk(basketItem.id, { include: [Product] }); 
             }
 
             res.status(201).json(basketItem);

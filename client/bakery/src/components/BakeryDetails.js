@@ -1,5 +1,3 @@
-// src/components/BakeryDetails.js
-
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { useParams } from 'react-router-dom';
@@ -67,7 +65,6 @@ function BakeryDetails() {
         const quantity = quantities[product.id] || 1;
         try {
             await addToCart(product, quantity);
-            // Уведомления об успешном добавлении обрабатываются внутри CartContext через Snackbar
         } catch (err) {
             setError(err.message);
         }
@@ -93,7 +90,6 @@ function BakeryDetails() {
         return stars;
     };
 
-    // Определяем, содержит ли корзина товары из другой пекарни
     const isDifferentBakery = cartItems.length > 0 && cartItems[0].Product.bakeryId !== parseInt(id, 10);
 
     return (
@@ -150,7 +146,6 @@ function BakeryDetails() {
                         Товары
                     </Typography>
 
-                    {/* Отображаем сообщение и кнопку для очистки корзины, если в корзине есть товары из другой пекарни */}
                     {isDifferentBakery && (
                         <Box sx={{
                             marginBottom: '10px',
@@ -267,7 +262,6 @@ function BakeryDetails() {
                 <Typography variant="body1">Пекарня не найдена.</Typography>
             )}
 
-            {/* Отображение ошибки, если есть */}
             {error && (
                 <Alert severity="error" sx={{ marginTop: '20px' }}>
                     {error}
