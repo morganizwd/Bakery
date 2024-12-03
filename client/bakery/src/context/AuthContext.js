@@ -1,10 +1,12 @@
 // src/context/AuthContext.js
 
 import React, { createContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Для перенаправления при выходе
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    const navigate = useNavigate(); // Используем хук для перенаправления
     const existingToken = localStorage.getItem('token');
     const existingRole = localStorage.getItem('role');
     let existingUser = null;
@@ -56,6 +58,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
         localStorage.removeItem('role');
         localStorage.removeItem('cart');
+
+        // Перенаправление на страницу входа после выхода
+        navigate('/login');
     };
 
     return (

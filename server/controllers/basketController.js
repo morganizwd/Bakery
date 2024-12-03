@@ -37,21 +37,18 @@ class BasketController {
 
             const product = await Product.findByPk(productId);
             if (!product) {
-                return res.status(404).json({ message: 'Товар не найден' });
+                return res.status(404).json({ message: 'Товар не найден.' });
             }
 
             let basket = await Basket.findOne({
                 where: { userId },
-                include: [
-                    {
-                        model: BasketItem,
-                        include: [Product], // Включаем связанные товары
-                    },
-                ],
+                include: [{
+                    model: BasketItem,
+                    include: [Product],
+                }],
             });
 
             if (!basket) {
-                console.log('Корзина отсутствует. Создание новой корзины.');
                 basket = await Basket.create({ userId });
             }
 
@@ -65,6 +62,7 @@ class BasketController {
 
             let basketItem = await BasketItem.findOne({
                 where: { basketId: basket.id, productId },
+                include: [Product], // Включаем Product
             });
 
             if (basketItem) {
@@ -76,6 +74,7 @@ class BasketController {
                     productId,
                     quantity,
                 });
+                basketItem = await BasketItem.findByPk(basketItem.id, { include: [Product] }); // Получаем Product
             }
 
             res.status(201).json(basketItem);

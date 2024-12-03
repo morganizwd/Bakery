@@ -1,3 +1,5 @@
+// src/components/BakeryDetails.js
+
 import React, { useEffect, useState, useContext } from 'react';
 import axios from '../api/axiosConfig';
 import { useParams } from 'react-router-dom';
@@ -16,6 +18,7 @@ import {
     CircularProgress,
     Box,
     Divider,
+    Alert,
 } from '@mui/material';
 
 function BakeryDetails() {
@@ -26,11 +29,12 @@ function BakeryDetails() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [quantities, setQuantities] = useState({});
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchBakery();
         fetchReviews();
-    }, []);
+    }, [id]);
 
     const fetchBakery = async () => {
         try {
@@ -63,10 +67,9 @@ function BakeryDetails() {
         const quantity = quantities[product.id] || 1;
         try {
             await addToCart(product, quantity);
-            alert(`Добавлено ${quantity} x ${product.name} в корзину!`);
-        } catch (error) {
-            console.error('Ошибка при добавлении товара в корзину:', error);
-            alert('Не удалось добавить товар в корзину.');
+            // Уведомления об успешном добавлении обрабатываются внутри CartContext через Snackbar
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -90,7 +93,8 @@ function BakeryDetails() {
         return stars;
     };
 
-    const isDifferentBakery = cartItems.length > 0 && cartItems[0].bakeryId !== parseInt(id, 10);
+    // Определяем, содержит ли корзина товары из другой пекарни
+    const isDifferentBakery = cartItems.length > 0 && cartItems[0].Product.bakeryId !== parseInt(id, 10);
 
     return (
         <Container sx={{ padding: '20px' }}>
@@ -146,8 +150,18 @@ function BakeryDetails() {
                         Товары
                     </Typography>
 
+                    {/* Отображаем сообщение и кнопку для очистки корзины, если в корзине есть товары из другой пекарни */}
                     {isDifferentBakery && (
-                        <Box sx={{ marginBottom: '10px', padding: '10px', border: '1px solid #f44336', borderRadius: '4px', backgroundColor: '#ffebee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box sx={{
+                            marginBottom: '10px',
+                            padding: '10px',
+                            border: '1px solid #f44336',
+                            borderRadius: '4px',
+                            backgroundColor: '#ffebee',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
                             <Typography variant="body1" color="error">
                                 В корзине уже есть товары из другой пекарни. Пожалуйста, очистите корзину перед добавлением новых товаров.
                             </Typography>
@@ -184,7 +198,7 @@ function BakeryDetails() {
                                                 {product.description}
                                             </Typography>
                                             <Typography variant="body1" color="text.primary" paragraph>
-                                                Цена: {product.price} BYN
+                                                Цена: {product.price} ₽
                                             </Typography>
                                             {authData.isAuthenticated && (
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -202,7 +216,7 @@ function BakeryDetails() {
                                                         variant="contained"
                                                         color="primary"
                                                         onClick={() => handleAddToCart(product)}
-                                                        disabled={isDifferentBakery} 
+                                                        disabled={isDifferentBakery}
                                                     >
                                                         Добавить в корзину
                                                     </Button>
@@ -251,6 +265,13 @@ function BakeryDetails() {
                 </Box>
             ) : (
                 <Typography variant="body1">Пекарня не найдена.</Typography>
+            )}
+
+            {/* Отображение ошибки, если есть */}
+            {error && (
+                <Alert severity="error" sx={{ marginTop: '20px' }}>
+                    {error}
+                </Alert>
             )}
         </Container>
     );
